@@ -37,7 +37,7 @@ function draw_images(graph, possible_partitions, no_districts)
                 nodefillc[v] = color
             end
         end
-        draw(PNG("graph$i.png"), gplot(graph, layout=spectral_layout, nodefillc=nodefillc, nodelabel=nodelabel))
+        draw(PNG("graph.pdf"), gplot(graph, layout=spectral_layout, nodefillc=nodefillc, nodelabel=nodelabel))
         i+= 1
     end
 end
