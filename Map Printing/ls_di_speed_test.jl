@@ -6,7 +6,7 @@ end
 
 function list_loop(list)
     for i in list
-        0
+        i
     end
     return 0
 end
@@ -17,7 +17,7 @@ end
 
 function dict_loop(dict)
     for i in dict
-        0
+        i
     end
     return 0
 end
@@ -28,7 +28,7 @@ end
 
 function graph_loop(mgraph)
     for i in vertices(mgraph)
-        0
+        get_prop(mgraph, i, :pop)
     end
     return 0
 end
@@ -49,7 +49,7 @@ function main()
     t_l_loop = 0
     t_d_loop = 0
     t_g_loop = 0
-    for i in 1:1000
+    for i in 1:100
         t_l_index += @elapsed list_index(list, 10000)
         t_d_index += @elapsed dict_index(dict ,10000)
         t_g_index += @elapsed graph_index(mgraph, 10000)
@@ -58,12 +58,12 @@ function main()
         t_g_loop += @elapsed graph_loop(mgraph)
 
     end
-    println("Avg index list: ", t_l_index)
-    println("Avg index dict: ", t_d_index)
-    println("Avg index grap: ", t_g_index)
-    println("Avg loop list : ", t_l_loop)
-    println("Avg loop dict : ", t_d_loop)
-    println("Avg loop grap : ", t_g_loop)
+    println("Avg index list: ", t_l_index/100)
+    println("Avg index dict: ", t_d_index/100)
+    println("Avg index grap: ", t_g_index/100)
+    println("Avg loop list : ", t_l_loop/100)
+    println("Avg loop dict : ", t_d_loop/100)
+    println("Avg loop grap : ", t_g_loop/100)
     println("-----------------------------")
 end
 
