@@ -19,9 +19,13 @@ end
 function convert_to_mg(nx_graph)
     pop = collect(values(sort(Dict{Integer, Integer}(nx[:get_node_attributes](nx_graph, "pop")))))
     pos = collect(values(sort(Dict{Integer, Tuple{Float64,Float64}}(nx[:get_node_attributes](nx_graph, "pos")))))
+    dem = collect(values(sort(Dict{Integer, Integer}(nx[:get_node_attributes](nx_graph, "rep")))))
+    area = collect(values(sort(Dict{Integer, Integer}(nx[:get_node_attributes](nx_graph, "area")))))
     adj_matrix_nx = nx[:to_numpy_matrix](nx_graph)
     graph = Graph(adj_matrix_nx)
-
+    for i in area
+        println(typeof(i))
+    end
     m_graph = MetaGraph(graph)
 
     for v in vertices(m_graph)
