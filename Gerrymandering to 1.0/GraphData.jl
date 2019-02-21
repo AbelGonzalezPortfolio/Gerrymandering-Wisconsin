@@ -2,8 +2,8 @@
 Abel Gonzalez
 02/18/19
 
-This module reads the graph data using pycall and converts the networkx graph
-into a julia graph
+This module reads the gpickle file with the networkx graph. Then strips this
+file and returns a graph and data
 =#
 module GraphData
 

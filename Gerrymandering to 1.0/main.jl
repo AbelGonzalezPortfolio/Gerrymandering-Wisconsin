@@ -1,26 +1,13 @@
-using LightGraphs, MetaGraphs
-
 push!(LOAD_PATH, "$(pwd())")
 using GraphData
-di = districts.dis
-mgraph = MetaGraph(graph)
+using timing
+dis = districts.dis
 
-for i in vertices(graph)
-    set_prop!(mgraph, i, :pop, 296)
-end
+# Run the time comparison funciton
+timing.get_time()
 
-# To get pop of vertex
-function get_time()
-    mine = 0
-    dr = 0
-    for i in 1:1000
-        mine += @elapsed [demographics.pop[i] for i in 1:nv(graph)]
-        dr += @elapsed [get_prop(mgraph, i, :pop) for i in 1:nv(graph)]
-    end
-    println(mine/1000)
-    println(dr/1000)
-end
-get_time()
+println(demographics.pop[20])
+println(dis[20])
 
-# To get pop of district of that vertex
-#println(districts.pop[di[20]])
+println(districts.pop[1])
+println(districts.pop[dis[20]])
