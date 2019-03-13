@@ -6,6 +6,7 @@ return a ::PyObject networkx graph
 """
 function get_nxgraph(filename::String)
     graph = nx[:read_gpickle](filename)
+
     return graph
 end
 
@@ -101,9 +102,7 @@ function initialize_data(pickle_filename::String, shapef_filename::String)
     graph = convert_graph(graph_nx)
 
     demographic = get_demographic(graph_nx)
-    connect_graph!(graph,  demographic.pos)
-
-    graph_nx = convert_graph(graph)
+    connect_graph!(graph, graph_nx, demographic.pos)
 
     return graph, graph_nx, shapefile, demographic
 end

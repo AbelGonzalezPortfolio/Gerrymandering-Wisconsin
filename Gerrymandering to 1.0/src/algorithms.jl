@@ -7,7 +7,7 @@ Iterate through the sorted (by length) list of components. Then create a main
 graph out of all of the components except the first one. Finally find the
 closest points from the disconnected component to the main graph.
 """
-function connect_graph!(graph::SimpleGraph, pos::Array)
+function connect_graph!(graph::SimpleGraph, graph_nx::PyObject, pos::Array)
     components = connected_components(graph)
     sort!(components, by=length)
     no_connected = length(connected_components(graph))
@@ -22,6 +22,7 @@ function connect_graph!(graph::SimpleGraph, pos::Array)
         p = sortperm(distance)
         for i in 1:Int(ceil(length(components[c])/10))
             add_edge!(graph, components[c][p][i], main_component[idxs[p][i]][1])
+            graph_nx[:add_edge](components[c][p][i]-1, main_component[idxs[p][i]][1]-1)
         end
     end
 end
