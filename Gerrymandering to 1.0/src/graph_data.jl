@@ -74,15 +74,17 @@ function initialize_districts()
         parts[i] += 1
     end
 
+    dis_array = [[] for i in 1:num_parts]
     pop = zeros(Int64, num_parts)
     dem = zeros(Int64, num_parts)
     rep = zeros(Int64, num_parts)
     for i in vertices(graph)
+        push!(dis_array[parts[i]], i)
         pop[parts[i]] += demographic.pop[i]
         dem[parts[i]] += demographic.dem[i]
         rep[parts[i]] += demographic.rep[i]
     end
-    districts = DistrictData(parts, dem, rep, pop)
+    districts = DistrictData(parts, dis_array, dem, rep, pop)
     return districts
 end
 
@@ -119,6 +121,7 @@ end
 
 mutable struct DistrictData
     dis::Array{Int64}
+    dis_arr::Array{Array{Int64}}
     dem::Array{Int64}
     rep::Array{Int64}
     pop::Array{Int64}
