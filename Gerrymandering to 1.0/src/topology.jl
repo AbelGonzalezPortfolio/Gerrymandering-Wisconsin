@@ -3,6 +3,7 @@
 
 Check that all districts are connected returns true or false
 """
+
 function all_connected(dis_arr::Array{Array{Int64}})
     connected = true
     for part in 1:num_parts
@@ -13,4 +14,13 @@ function all_connected(dis_arr::Array{Array{Int64}})
         end
     end
     return connected
+end
+
+
+function get_boundary(nodes)
+    boundary = Set()
+    for v in nodes
+        union!(boundary, neighbors(graph, v))
+    end
+    return setdiff(boundary, nodes)
 end
