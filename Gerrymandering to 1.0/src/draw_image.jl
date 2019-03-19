@@ -12,3 +12,24 @@ function draw_graph(graph::PyObject, dis::Array{Int64, 1}, name)
     shapefile[:plot](column="districts", cmap="Set1")
     plt[:savefig]("./images/shape_$name.png")
 end
+
+function record_info(districts)
+    info = Dict()
+    info["connected"] = all_connected(districts.dis_arr)
+    info["parity"] = all_parity(districts.pop)
+    info["dem_percent"] = dem_percentages(districts)
+    info["mean_dem_percent"] = mean(percent_dem)
+    info["safe_dem_seats"] = length([p for p in percent_dem if p >= safe_percentage])
+    return info
+end
+
+function print_info(info)
+    println("***********************************")
+    println("Number of vertices = ", nv(graph))
+    println("Connected? ", info["connected"])
+    println("Parity? ", info["parity"])
+    println("Dem percents = ", info["dem_percent"])
+    println("Target = ", target)
+    println("Mean dem percent = ", info["mean_dem_percent"])
+    println("Safe dem seats = ", info["safe_dem_seats"])
+end

@@ -1,24 +1,22 @@
 push!(LOAD_PATH, "./src/")
 #module Gerrymandering
 
-using LightGraphs
 using Colors
+using PyCall
 using Compose
 using GraphPlot
-using PyCall
-using NearestNeighbors
-using LinearAlgebra
 using Statistics
+using LightGraphs
+using LinearAlgebra
+using NearestNeighbors
 #import Cairo, Fontconfig
 
-
 include("graph_data.jl")
-include("draw_image.jl")
-include("algorithms.jl")
 include("score.jl")
 include("topology.jl")
-include("parity.jl")
-include("districts.jl")
+include("draw_image.jl")
+include("algorithms.jl")
+include("simulated_annealing.jl")
 
 
 
@@ -47,62 +45,39 @@ const percent_dem = 100*sum(demographic.dem)/(sum(demographic.dem)+sum(demograph
 ## Simulated annealing parameters
 const safe_percentage = 55
 const safe_seats = 7 # Placeholder
-const max_moves = 4
+const max_moves = 2
 const max_radius = 2
 const max_tries = 10
-const max_swaps = 250
+const max_swaps = 50
 const alpha = 0.95
-const temperature_steps = 200
+const temperature_steps = 5
 const T_min = alpha^temperature_steps
 
 
-throw_away_target = (num_parts*percent_dem-safe_percentage*safe_seats)/(num_parts - safe_seats)
-global target = append!([throw_away_target for i in 1:(num_parts - safe_seats)],
+throw_away_target = (num_parts*percent_dem-safe_percentage*safe_seats)/(num_parts-safe_seats)
+const target = append!([throw_away_target for i in 1:(num_parts - safe_seats)],
     [safe_percentage for i in 1:safe_seats])
 
 
 ## Creates initial partition with Metis(Necessary for almost everything)
 districts = initialize_districts()
 
+
 ## Uncomment to draw the graph
-@time draw_graph(graph, districts.dis, "before") # Graph
-@time draw_graph(graph_nx, districts.dis, "before") # Shape
+#@time draw_graph(graph, districts.dis, "before") # Graph
+#@time draw_graph(graph_nx, districts.dis, "before") # Shape
 
+## Records the data before the simulated annealing
+info_init = record_info(districts)
 
-## Record before data.
-connected_before = all_connected(districts.dis_arr)
-parity_before = all_parity(districts.pop)
-dem_percent_before = dem_percentages(districts)
-mean_dem_percent_before = mean(dem_percent_before)
-safe_dem_seats_before = length([p for p in dem_percent_before if p >= safe_percentage])
-
-#Print before data.
-println("Number of vertices = ", nv(graph))
-println("Connected? ", connected_before)
-println("Parity? ", parity_before)
-println("Dem percents = ", dem_percent_before)
-println("Mean dem percent = ", mean_dem_percent_before)
-println("Safe dem seats = ", safe_dem_seats_before)
-println("Target = ", target)
-println("Initial Bunch Radius: ", max_radius)
 #end #module Gerrymandering
-@time districts = simulated_annealing(districts)
+@time districts, st = simulated_annealing(districts)
 
-connected_before = all_connected(districts.dis_arr)
-parity_before = all_parity(districts.pop)
-dem_percent_before = dem_percentages(districts)
-mean_dem_percent_before = mean(dem_percent_before)
-safe_dem_seats_before = length([p for p in dem_percent_before if p >= safe_percentage])
-println("Number of vertices = ", nv(graph))
-println("Connected? ", connected_before)
-println("Parity? ", parity_before)
-println("Dem percents = ", dem_percent_before)
-println("Mean dem percent = ", mean_dem_percent_before)
-println("Safe dem seats = ", safe_dem_seats_before)
-println("Target = ", target)
-println("Initial Bunch Radius: ", max_radius)
-draw_graph(graph, districts.dis, "after")
-draw_graph(graph_nx, districts.dis, "after")
+## Records the data after the simulated annealing
+info = record_info(districts)
+print_info(info_init)
+print_info(info)
+println(st)
 
-@time draw_graph(graph, districts.dis, "after") # Graph
-@time draw_graph(graph_nx, districts.dis, "after") # Shape
+# @time draw_graph(graph, districts.dis, "after") # Graph
+# @time draw_graph(graph_nx, districts.dis, "after") # Shape

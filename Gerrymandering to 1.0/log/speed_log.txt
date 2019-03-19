@@ -1,0 +1,31 @@
+##################
+Speed Log:
+
+# Times are in order of versions
+1- 0.1
+2- 0.1.1
+
+##################
+alpha = 0.95
+max_moves = 4
+max_radius = 2
+max_tries = 10
+max_swaps = 100
+temperature_steps = 100
+
+
+"""
+This times are average in 10 reps
+"""
+Sim Annealing without moves: (time that takes to deep copy and Calculate score)
+  - 2.86
+  - 0.32
+
+"""
+This is the amount of times set by algorithm
+"""
+Time to shuffle nodes: (only time that takes to shuffle nodes)
+  - (0.012836, 0.0136667, 0.013785)
+  - (0.006092, 0.0058953, 0.006011)
+
+##################

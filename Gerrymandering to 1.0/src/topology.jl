@@ -24,3 +24,9 @@ function get_boundary(nodes)
     end
     return setdiff(boundary, nodes)
 end
+
+function check_connected_without_bunch(districts, part_from, bunch_to_move)
+    part_nodes = setdiff(districts.dis_arr[part_from], bunch_to_move)
+    subgraph, vm = induced_subgraph(graph, collect(part_nodes))
+    return is_connected(subgraph)
+end

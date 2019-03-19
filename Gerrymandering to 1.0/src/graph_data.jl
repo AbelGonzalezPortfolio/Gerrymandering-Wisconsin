@@ -68,7 +68,7 @@ function initialize_districts()
     targets = convert(Array{Any,1},[1/num_parts for i in 1:num_parts])
 
     edgecuts, parts = metis[:part_graph](
-        graph_nx, num_parts, contig=true, tpwgts=targets, ufactor = 1)
+        graph_nx, num_parts, contig=true, tpwgts=targets, ufactor = 100)
 
     for i in 1:length(parts)
         parts[i] += 1
