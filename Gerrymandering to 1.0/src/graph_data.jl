@@ -74,7 +74,7 @@ function initialize_districts()
         parts[i] += 1
     end
 
-    dis_array = [[] for i in 1:num_parts]
+    dis_array = [Int64[] for i in 1:num_parts]
     pop = zeros(Int64, num_parts)
     dem = zeros(Int64, num_parts)
     rep = zeros(Int64, num_parts)

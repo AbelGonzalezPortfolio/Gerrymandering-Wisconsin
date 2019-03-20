@@ -14,9 +14,9 @@ function simulated_annealing(districts)
 
             ap = acceptance_prob(current_score, new_score, T)
             if ap > rand()
-                # if new_score < current_score
-                #     println("Score: ", new_score)
-                # end
+                if new_score < current_score
+                    println("Score: ", new_score)
+                end
                 swaps[2] += 1
                 districts = new_districts
                 current_score = new_score
@@ -27,13 +27,13 @@ function simulated_annealing(districts)
         bunch_radius = Int(floor(max_radius - (max_radius / temperature_steps) * (temperature_steps - steps_remaining)))
         dem_percents = sort!(dem_percentages(districts))
         T = T * alpha
-        # println("-------------------------------------")
-        # println("Steps Remaining: ", steps_remaining)
-        # println("Bunch Radius: ", bunch_radius)
-        # println("T = ", T)
-        # println("Dem percents: ", sort(dem_percents))
-        # println("Parity: ", [100.0*((p-parity)/parity) for p in sort(districts.pop)])
-        # println("-------------------------------------")
+        println("-------------------------------------")
+        println("Steps Remaining: ", steps_remaining)
+        println("Bunch Radius: ", bunch_radius)
+        println("T = ", T)
+        println("Dem percents: ", sort(dem_percents))
+        println("Parity: ", [100.0*((p-parity)/parity) for p in sort(districts.pop)])
+        println("-------------------------------------")
     end
     return districts
 end
@@ -50,7 +50,7 @@ end
 function shuffle_nodes(districts, bunch_radius)
     districts_tmp = deepcopy(districts)
     part_to = rand(1:num_parts)
-    num_moves = rand(1:max_moves)
+    num_moves = 2
 
     for i in 1:num_moves
         part_to, success = move_nodes(districts, part_to, bunch_radius)
@@ -66,31 +66,28 @@ function move_nodes(districts, part_to, bunch_radius)
     for i in 1:max_tries
         base_node_to_move = rand(boundary)
         part_from = districts.dis[base_node_to_move]
-        bunch_to_move = get_bunch(bunch_radius, districts, base_node_to_move, part_from)
-        if check_connected_without_bunch(districts, part_from, bunch_to_move)
+
+        bunch_to_move, connected = get_bunch(bunch_radius, districts, base_node_to_move, part_from)
+
+        if connected
             do_move(districts, part_to, part_from, bunch_to_move)
             return part_from, true
         end
-
     end
     return part_to, false
 end
 
 function get_bunch(bunch_radius, districts, base_node_to_move, part_from)
-    radius = bunch_radius
-    connected = false
-    bunch_to_move = [] #Declare for access to local scope variable in loop.
-    while connected == false
-        bunch_to_move = Set(neighborhood(graph, base_node_to_move, radius))
-        bunch_to_move = intersect(bunch_to_move, districts.dis_arr[part_from])
-        subgraph, vm = induced_subgraph(graph, collect(bunch_to_move))
-        if is_connected(subgraph)
-            connected = true
-        else
-            radius -= 1 #Decrease radius until bunch_to_move is connected.
-        end
+    dis_graph, vmap = induced_subgraph(graph, districts.dis_arr[part_from])
+    base_node = findfirst(vmap .== base_node_to_move::Int64)
+    bunch_to_move = sort(neighborhood(dis_graph, base_node, bunch_radius), rev=true)
+    b = nv(dis_graph)
+    for i in 1:length(bunch_to_move)
+        rem_vertex!(dis_graph, (bunch_to_move[i]))
     end
-    return bunch_to_move
+    connected_without_bunch = is_connected(dis_graph)
+    bunch = [vmap[b] for b in bunch_to_move]
+    return bunch, connected_without_bunch
 end
 
 

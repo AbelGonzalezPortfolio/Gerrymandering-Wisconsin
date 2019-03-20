@@ -3,7 +3,7 @@ function draw_graph(graph::SimpleGraph, dis::Array{Int64, 1}, name)
     node_labels = collect(vertices(graph))
     pos_x = [demographic.pos[v][1] for v in vertices(graph)]
     pos_y = [-demographic.pos[v][2] for v in vertices(graph)]
-    nodefillc = [color[districts.dis[v]+1] for v in vertices(graph)]
+    nodefillc = [color[dis[v]+1] for v in vertices(graph)]
     draw(SVG("./images/graph_$name.svg"), gplot(graph, pos_x, pos_y, nodefillc=nodefillc))
 end
 
@@ -15,6 +15,7 @@ end
 
 function record_info(districts)
     info = Dict()
+    info["nv"] = nv(graph)
     info["connected"] = all_connected(districts.dis_arr)
     info["parity"] = all_parity(districts.pop)
     info["dem_percent"] = dem_percentages(districts)
@@ -25,7 +26,7 @@ end
 
 function print_info(info)
     println("***********************************")
-    println("Number of vertices = ", nv(graph))
+    println("Number of vertices = ", info["nv"])
     println("Connected? ", info["connected"])
     println("Parity? ", info["parity"])
     println("Dem percents = ", info["dem_percent"])

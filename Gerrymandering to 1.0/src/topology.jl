@@ -18,15 +18,16 @@ end
 
 
 function get_boundary(nodes)
-    boundary = Set()
-    for v in nodes
-        union!(boundary, neighbors(graph, v))
+    boundary = Set(neighbors(graph, nodes[1]))
+    for v in 2:length(nodes)
+        union!(boundary, Set(neighbors(graph, v)))
     end
-    return setdiff(boundary, nodes)
+    setdiff!(boundary, nodes)
+    return boundary
 end
 
 function check_connected_without_bunch(districts, part_from, bunch_to_move)
     part_nodes = setdiff(districts.dis_arr[part_from], bunch_to_move)
-    subgraph, vm = induced_subgraph(graph, collect(part_nodes))
+    subgraph, vm = induced_subgraph(graph, part_nodes)
     return is_connected(subgraph)
 end

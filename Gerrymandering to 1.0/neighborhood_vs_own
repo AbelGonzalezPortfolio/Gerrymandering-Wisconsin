@@ -1,0 +1,8 @@
+using LightGraphs
+using GraphPlot
+
+g = PathGraph(3)
+gs, vmap = induced_subgraph(g, [4,5])
+gi = difference(g, gs)
+gplot(gi)
+is_connected(gi)
