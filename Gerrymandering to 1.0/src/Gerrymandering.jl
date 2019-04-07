@@ -9,8 +9,11 @@ using Statistics
 using LightGraphs
 using LinearAlgebra
 using NearestNeighbors
-#import Cairo, Fontconfig
-export main
+using ConcaveHull
+using StatsBase
+using Random
+using Debugger
+
 include("graph_data.jl")
 include("score.jl")
 include("topology.jl")
@@ -18,7 +21,7 @@ include("draw_image.jl")
 include("algorithms.jl")
 #include("simulated_annealing.jl")
 include("sim_ann_test.jl")
-
+include("initial_districts.jl")
 
 
 push!(PyVector(pyimport("sys")["path"]), "./src/")
@@ -48,10 +51,10 @@ const safe_percentage = 55
 const safe_seats = 7 # Placeholder
 const max_moves = 4
 const max_radius = 2
-const max_tries = 10
-const max_swaps = 700
+const max_tries = 5
+const max_swaps = 600
 const alpha = 0.95
-const temperature_steps = 200
+const temperature_steps = 150
 const T_min = alpha^temperature_steps
 
 
@@ -60,24 +63,34 @@ const target = append!([throw_away_target for i in 1:(num_parts - safe_seats)],
     [safe_percentage for i in 1:safe_seats])
 
 ## Creates initial partition with Metis(Necessary for almost everything)
-districts = initialize_districts()
+#districts = initialize_districts()
 
 ## Uncomment to draw the graph
-draw_graph(graph, districts.dis, "before") # Graph
-draw_graph(graph_nx, districts.dis, "before") # Shape
+#draw_graph(graph, districts.dis, "before") # Graph
+#draw_graph(graph_nx, districts.dis, "before") # Shape
 
 ## Records the data before the simulated annealing
-info_init = record_info(districts)
+#info_init = record_info(districts)
 
 ## Redistrict the graph
-@time districts= simulated_annealing(districts)
+println(is_connected(graph))
+state_boundary = get_state_boundary()
+districts = initialize_districts(state_boundary)
+draw_graph(graph, districts.dis, "after")
+get_score(districts)
+#info_init = record_info(districts)
+@time districts = simulated_annealing(districts)
+
+#@time districts = simulated_annealing(districts)
 
 ## Records the data after the simulated annealing
-info = record_info(districts)
-print_info(info_init)
-print_info(info)
-
-draw_graph(graph, districts.dis, "after") # Graph
-draw_graph(graph_nx, districts.dis, "after") # Shape
-#districts = initialize_districts()
-end
+# info = record_info(districts)
+# print_info(info_init)
+# print_info(info)
+#
+# draw_graph(graph, districts.dis, "after") # Graph
+#draw_graph(graph_nx, districts.dis, "after") # Shape
+# #districts = initialize_districts()
+#end
+#
+#Profile.clear()

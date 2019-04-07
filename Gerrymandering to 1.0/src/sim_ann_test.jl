@@ -24,7 +24,7 @@ function simulated_annealing(districts)
             i += 1
         end
         steps_remaining -= 1
-        bunch_radius = Int(floor(max_radius - (max_radius / temperature_steps) * (temperature_steps - steps_remaining)))
+        #bunch_radius = Int(floor(max_radius - (max_radius / temperature_steps) * (temperature_steps - steps_remaining)))
         dem_percents = sort!(dem_percentages(districts))
         T = T * alpha
         println("-------------------------------------")
@@ -50,7 +50,7 @@ end
 function shuffle_nodes(districts, bunch_radius)
     districts_tmp = deepcopy(districts)
     part_to = rand(1:num_parts)
-    num_moves = 2
+    num_moves = rand(1:max_moves)
 
     for i in 1:num_moves
         part_to, success = move_nodes(districts, part_to, bunch_radius)
@@ -67,7 +67,7 @@ function move_nodes(districts, part_to, bunch_radius)
         base_node_to_move = rand(boundary)
         part_from = districts.dis[base_node_to_move]
 
-        bunch_to_move, connected = get_bunch(bunch_radius, districts, base_node_to_move, part_from)
+        bunch_to_move, connected = get_bunch(bunch_radius, districts.dis_arr, base_node_to_move, part_from)
 
         if connected
             do_move(districts, part_to, part_from, bunch_to_move)
@@ -77,8 +77,8 @@ function move_nodes(districts, part_to, bunch_radius)
     return part_to, false
 end
 
-function get_bunch(bunch_radius, districts, base_node_to_move, part_from)
-    dis_graph, vmap = induced_subgraph(graph, districts.dis_arr[part_from])
+function get_bunch(bunch_radius, dis_arr, base_node_to_move, part_from)
+    dis_graph, vmap = induced_subgraph(graph, dis_arr[part_from])
     base_node = findfirst(vmap .== base_node_to_move::Int64)
     bunch_to_move = sort(neighborhood(dis_graph, base_node, bunch_radius), rev=true)
     b = nv(dis_graph)

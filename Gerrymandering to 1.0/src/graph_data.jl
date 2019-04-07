@@ -92,13 +92,13 @@ end
 """
     initialize_data(pickle_filename, shapef_filename)
 
-read nxgraph, convert to lightgraph, connect all of the discontinuos
+Read nxgraph, convert to lightgraph, connect all of the discontinuos
 parts and updates nxgraph with new edges.
 """
 function initialize_data(pickle_filename::String, shapef_filename::String)
     println("Initializing data")
-    shapefile = gpd[:read_file](shapef_filename)
-    shapefile[:insert](1, "districts", 1)
+    shapefile = gpd.read_file(shapef_filename)
+    shapefile.insert(1, "districts", 1)
 
     graph_nx = get_nxgraph(pickle_filename)
     graph = convert_graph(graph_nx)
@@ -111,18 +111,18 @@ end
 
 
 struct DemographicData
-    pos::Array{Tuple{Float64, Float64}}
-    pop::Array{Int64}
-    dem::Array{Int64}
-    rep::Array{Int64}
-    area::Array{Float64}
+    pos::Array{Tuple{Float64, Float64}, 1}
+    pop::Array{Int64,1}
+    dem::Array{Int64,1}
+    rep::Array{Int64,1}
+    area::Array{Float64,1}
 end
 
 
 mutable struct DistrictData
-    dis::Array{Int64}
-    dis_arr::Array{Array{Int64}}
-    dem::Array{Int64}
-    rep::Array{Int64}
-    pop::Array{Int64}
+    dis::Array{Int64,1}
+    dis_arr::Array{Array{Int64,1},1}
+    dem::Array{Int64,1}
+    rep::Array{Int64,1}
+    pop::Array{Int64,1}
 end
