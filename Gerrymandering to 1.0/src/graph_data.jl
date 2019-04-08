@@ -119,10 +119,10 @@ struct DemographicData
 end
 
 
-mutable struct DistrictData
-    dis::Array{Int64,1}
-    dis_arr::Array{Array{Int64,1},1}
-    dem::Array{Int64,1}
-    rep::Array{Int64,1}
-    pop::Array{Int64,1}
-end
+# mutable struct DistrictData
+#     dis::Array{Int64,1}
+#     dis_arr::Array{Array{Int64,1},1}
+#     dem::Array{Int64,1}
+#     rep::Array{Int64,1}
+#     pop::Array{Int64,1}
+# end

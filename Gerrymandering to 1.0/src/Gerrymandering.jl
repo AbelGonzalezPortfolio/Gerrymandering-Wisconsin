@@ -12,8 +12,14 @@ using NearestNeighbors
 using ConcaveHull
 using StatsBase
 using Random
-using Debugger
+#using Debugger
 
+mutable struct DistrictData{T<:Array{Int64,1}}
+    dis::T
+    dem::T
+    rep::T
+    pop::T
+end
 include("graph_data.jl")
 include("score.jl")
 include("topology.jl")
@@ -21,18 +27,18 @@ include("draw_image.jl")
 include("algorithms.jl")
 #include("simulated_annealing.jl")
 include("sim_ann_test.jl")
-include("initial_districts.jl")
+#include("initial_districts.jl")
 
 
 push!(PyVector(pyimport("sys")["path"]), "./src/")
-metis = pyimport("metis")
+#metis = pyimport("metis")
 nx = pyimport("networkx")
 gpd = pyimport("geopandas")
 plt = pyimport("matplotlib.pyplot")
 
 
-pickle_filename = "./data/wi14.gpickle"
-shapef_filename = "./data/shapef/Wards_Final_Geo_111312_2014_ED.shp"
+pickle_filename = joinpath("data", "wi14.gpickle")
+shapef_filename = joinpath("data","shapef", "Wards_Final_Geo_111312_2014_ED.shp")
 
 
 ## Graph Paramaters
@@ -50,7 +56,7 @@ const percent_dem = 100*sum(demographic.dem)/(sum(demographic.dem)+sum(demograph
 const safe_percentage = 55
 const safe_seats = 7 # Placeholder
 const max_moves = 4
-const max_radius = 2
+const max_radius = 1
 const max_tries = 5
 const max_swaps = 600
 const alpha = 0.95
@@ -73,13 +79,8 @@ const target = append!([throw_away_target for i in 1:(num_parts - safe_seats)],
 #info_init = record_info(districts)
 
 ## Redistrict the graph
-println(is_connected(graph))
-state_boundary = get_state_boundary()
-districts = initialize_districts(state_boundary)
-draw_graph(graph, districts.dis, "after")
-get_score(districts)
 #info_init = record_info(districts)
-@time districts = simulated_annealing(districts)
+#@time districts = simulated_annealing(districts)
 
 #@time districts = simulated_annealing(districts)
 

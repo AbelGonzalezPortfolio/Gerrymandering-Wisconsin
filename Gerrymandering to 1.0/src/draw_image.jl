@@ -4,13 +4,13 @@ function draw_graph(graph::SimpleGraph, dis::Array{Int64, 1}, name)
     pos_x = [demographic.pos[v][1] for v in vertices(graph)]
     pos_y = [-demographic.pos[v][2] for v in vertices(graph)]
     nodefillc = [color[dis[v]+1] for v in vertices(graph)]
-    draw(SVG("./images/graph_$name.svg"), gplot(graph, pos_x, pos_y, nodefillc=nodefillc))
+    draw(SVG(joinpath("images","graph_$name.svg")), gplot(graph, pos_x, pos_y, nodefillc=nodefillc))
 end
 
 function draw_graph(graph::PyObject, dis::Array{Int64, 1}, name)
     shapefile["districts"] = dis
     shapefile[:plot](column="districts", cmap="Set1")
-    plt[:savefig]("./images/shape_$name.png")
+    plt[:savefig](joinpath("images", "shape_$name.png"))
 end
 
 function record_info(districts)

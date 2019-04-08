@@ -10,7 +10,7 @@ function simulated_annealing(districts)
         while i <= swaps[1]
             new_districts = deepcopy(districts)
             new_districts = shuffle_nodes(new_districts, bunch_radius)
-            new_score = get_score(new_districts) - .1
+            new_score = get_score(new_districts)
 
             ap = acceptance_prob(current_score, new_score, T)
             if ap > rand()
