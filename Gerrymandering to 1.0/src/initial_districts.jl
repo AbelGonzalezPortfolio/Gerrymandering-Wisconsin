@@ -26,11 +26,32 @@ function get_score(dem::Array{Int64,1}, rep::Array{Int64,1})
     return norm(percentages-target)
 end
 
-function fill_district!(districts, district_to_fill, dis_array)
-    while pop[district_to_fill] < parity
-        select_nodes!
+function add_node!(districts, dis_array, node::Int64, part_to, nodes_taken)
+    districts.dis[node] = part_to
+    districts.dem[part_to] += demographic.dem[node]
+    districts.rep[part_to] += demographic.rep[node]
+    districts.pop[part_to] += demographic.pop[node]
+    push!(dis_array[part_to], node)
+    push!(nodes_taken, node)
+end
+
+function select_node(dis_array, nodes_taken, part_to)
+    district_boundary = get_boundary(dis_array)
+    setdiff!(district_boundary, nodes_taken)
+
+    dem_share = Float64[]
+    for i in district_boundary
+        push!(dem_share, get_democratic_share(node))
+    end
+    sort!(dem_share)
+
+    if part_to == 1
+        return dem_share[1]
+    else
+        return dem_share[end]
     end
 end
+
 
 function initialize_districts(state_boundary::Array{Int64})
     # Initialize list of districts nodes and fill with random initial seeds
@@ -38,15 +59,21 @@ function initialize_districts(state_boundary::Array{Int64})
     dem = zeros(Int64, num_parts)
     rep = zeros(Int64, num_parts)
     pop = zeros(Int64, num_parts)
-    dis_array = Array{Array{Int64}}(undef, num_parts)
+    dis_array = [Int64[] for i in num_parts]
     districts = DistrictData(dis, dem, rep, pop)
     nodes_taken = Int64[]
 
-    while length(nodes_taken) < nv(graph)
-        state_boundary = setdiff(state_boundary, nodes_taken)
-        district_to_fill = rand(state_boundary)
-        fill_district!(districts, district_to_fill, dis_array)
+    # Select initial seed
+    state_boundary = setdiff(state_boundary, nodes_taken)
+    initial_seed = rand(state_boundary)
+
+    add_node!(districts, dis_array, initial_seed, 1, nodes_taken)
+    for i in 1:num_parts
+        node_to_move = select_node(dis, nodes_taken, i)
+        add_node!(districts, dis_array, node_to_move, i, )
     end
+
+
     return districts
 end
 
