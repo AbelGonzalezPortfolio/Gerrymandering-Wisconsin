@@ -4,7 +4,7 @@ function get_state_boundary(pos::Array{Tuple{Float64, Float64}, 1})
     positions = reshape(collect(Iterators.flatten(pos)),
                        (2,nv(graph)))
     kdtree = KDTree(positions, reorder=false)
-    hull = concave_hull(kdtree, 1)
+    hull = concave_hull(kdtree, 100)
     state_boundary = Int[]
     hull_pos = Tuple{Float64, Float64}[]
 
@@ -62,7 +62,7 @@ function select_node(dis_array, nodes_taken, part_to)
     if part_to == 1
         return boundary_by_dem[1]
     else
-        return district_boundary
+        return boundary
     end
 end
 
@@ -79,29 +79,33 @@ function initialize_districts(state_boundary::Array{Int64})
 
 
     # Select initial seed
-    # state_boundary = setdiff(state_boundary, nodes_taken)
-    # initial_seed = rand(state_boundary)
-    # add_node!(districts, dis_array, initial_seed, i, nodes_taken)
-
-    for i in 1:num_parts
-        state_boundary = setdiff(state_boundary, nodes_taken)
-        initial_seed = rand(state_boundary)
-        add_node!(districts, dis_array, initial_seed, i, nodes_taken)
-        while districts.pop[i] < parity
-            node_to_move = select_node(dis_array[i], nodes_taken, i)
-            if node_to_move == false
-                break
-            end
-            add_node!(districts, dis_array, node_to_move, i, nodes_taken)
-            println(nv(graph)- length(nodes_taken))
+    state_boundary = setdiff(state_boundary, nodes_taken)
+    initial_seed = rand(1:nv(graph))
+    add_node!(districts, dis_array, initial_seed, 1, nodes_taken)
+    while districts.pop[1] < parity
+        node_to_move = select_node(dis_array[1], nodes_taken, 1)
+        if node_to_move == false
+            break
         end
-        #draw_graph(graph, districts.dis, "$i")
+        add_node!(districts, dis_array, node_to_move, 1, nodes_taken)
     end
-    #println("Leftover Nodes", nv(graph)-length(nodes_taken))
     return districts
 end
 
+
+function get_lowest_init()
+    current_dem_share = 100
+    for i in 1:50
+        districts = initialize_districts(state_boundary)
+        dem_share = dem_percentages(districts)[1]
+        if dem_share < current_dem_share
+            new_districts = districts
+            println(dem_share)
+            current_dem_share = dem_share
+        end
+    end
+    return new_districts
+end
 state_boundary = get_state_boundary(demographic.pos)
-districts = initialize_districts(state_boundary)
-get_score(districts)
-draw_graph(graph, districts.dis, "initial_seeds")
+@time districts = get_lowest_init()
+dem_percentages(districts)
