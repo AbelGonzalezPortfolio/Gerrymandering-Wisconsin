@@ -83,45 +83,25 @@ function initialize_districts(state_boundary::Array{Int64})
     # initial_seed = rand(state_boundary)
     # add_node!(districts, dis_array, initial_seed, i, nodes_taken)
 
-    state_boundary = setdiff(state_boundary, nodes_taken)
-    initial_seed = rand(state_boundary)
-    add_node!(districts, dis_array, initial_seed, 1, nodes_taken)
-    while districts.pop[1] < parity
-        node_to_move = select_node(dis_array[1], nodes_taken, 1)
-        if node_to_move == false
-            break
-        end
-        add_node!(districts, dis_array, node_to_move, 1, nodes_taken)
-        #println(nv(graph)- length(nodes_taken))
-    end
-
-
-    for i in 2:num_parts
+    for i in 1:num_parts
         state_boundary = setdiff(state_boundary, nodes_taken)
         initial_seed = rand(state_boundary)
         add_node!(districts, dis_array, initial_seed, i, nodes_taken)
-    end
-
-    while length(nodes_taken) != 0
-        for i in 2:num_parts
+        while districts.pop[i] < parity
             node_to_move = select_node(dis_array[i], nodes_taken, i)
             if node_to_move == false
-                continue
+                break
             end
             add_node!(districts, dis_array, node_to_move, i, nodes_taken)
-            #println(nv(graph)- length(nodes_taken))
+            println(nv(graph)- length(nodes_taken))
         end
-    end
         #draw_graph(graph, districts.dis, "$i")
-
-    println("Leftover Nodes", nv(graph)-length(nodes_taken))
+    end
+    #println("Leftover Nodes", nv(graph)-length(nodes_taken))
     return districts
 end
 
-
 state_boundary = get_state_boundary(demographic.pos)
 districts = initialize_districts(state_boundary)
-get_score(dis)
-
-get_lowest_district()
+get_score(districts)
 draw_graph(graph, districts.dis, "initial_seeds")
