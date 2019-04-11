@@ -14,11 +14,12 @@ using StatsBase
 using Random
 #using Debugger
 
-mutable struct DistrictData{T<:Array{Int64,1}}
-    dis::T
-    dem::T
-    rep::T
-    pop::T
+mutable struct DistrictData
+    dis::Array{Int64,1}
+    dem::Array{Int64,1}
+    rep::Array{Int64,1}
+    pop::Array{Int64,1}
+    dis_array::Array{Array{Int64,1},1}
 end
 include("graph_data.jl")
 include("score.jl")
@@ -31,7 +32,7 @@ include("sim_ann_test.jl")
 
 
 push!(PyVector(pyimport("sys")["path"]), "./src/")
-#metis = pyimport("metis")
+metis = pyimport("metis")
 nx = pyimport("networkx")
 gpd = pyimport("geopandas")
 plt = pyimport("matplotlib.pyplot")
