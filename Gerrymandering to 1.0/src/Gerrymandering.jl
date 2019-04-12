@@ -19,7 +19,7 @@ mutable struct DistrictData
     dem::Array{Int64,1}
     rep::Array{Int64,1}
     pop::Array{Int64,1}
-    dis_array::Array{Array{Int64,1},1}
+    dis_arr::Array{Array{Int64,1},1}
 end
 include("graph_data.jl")
 include("score.jl")
@@ -35,7 +35,7 @@ push!(PyVector(pyimport("sys")["path"]), "./src/")
 metis = pyimport("metis")
 nx = pyimport("networkx")
 gpd = pyimport("geopandas")
-plt = pyimport("matplotlib.pyplot")
+#plt = pyimport("matplotlib.pyplot")
 
 
 pickle_filename = joinpath("data", "wi14.gpickle")
