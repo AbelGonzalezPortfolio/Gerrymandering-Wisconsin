@@ -1,0 +1,2 @@
+ 
+speed improvements through struct types. 

@@ -1,0 +1,2 @@
+- work on speed improvements throught types of structs
+- use geopandas to improve code readibility

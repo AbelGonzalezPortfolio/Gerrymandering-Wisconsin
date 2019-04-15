@@ -1,36 +1,53 @@
 push!(LOAD_PATH, "./src/")
 #module Gerrymandering
 
-using LightGraphs
 using Colors
+using PyCall
 using Compose
 using GraphPlot
-using PyCall
-using NearestNeighbors
-using LinearAlgebra
 using Statistics
-#import Cairo, Fontconfig
+using LightGraphs
+using LinearAlgebra
+using NearestNeighbors
+using ConcaveHull
+using StatsBase
+using Random
+#using Debugger
 
+struct DemographicData
+    pos::Array{Tuple{Float64, Float64}, 1}
+    pop::Array{Int64,1}
+    dem::Array{Int64,1}
+    rep::Array{Int64,1}
+    area::Array{Float64,1}
+end
 
+mutable struct DistrictData
+    dis::Array{Int64,1}
+    dem::Array{Int64,1}
+    rep::Array{Int64,1}
+    pop::Array{Int64,1}
+    dis_arr::Array{Array{Int64,1},1}
+end
 include("graph_data.jl")
-include("draw_image.jl")
-include("algorithms.jl")
 include("score.jl")
 include("topology.jl")
-include("parity.jl")
-include("districts.jl")
-
+include("draw_image.jl")
+include("algorithms.jl")
+include("simulated_annealing.jl")
+#include("initial_districts.jl")
+include("initial_districts_copy.jl")
 
 
 push!(PyVector(pyimport("sys")["path"]), "./src/")
 metis = pyimport("metis")
 nx = pyimport("networkx")
 gpd = pyimport("geopandas")
-plt = pyimport("matplotlib.pyplot")
+#plt = pyimport("matplotlib.pyplot")
 
 
-pickle_filename = "./data/wi14.gpickle"
-shapef_filename = "./data/shapef/Wards_Final_Geo_111312_2014_ED.shp"
+pickle_filename = joinpath("data", "wi14.gpickle")
+shapef_filename = joinpath("data","shapef", "Wards_Final_Geo_111312_2014_ED.shp")
 
 
 ## Graph Paramaters
@@ -47,62 +64,39 @@ const percent_dem = 100*sum(demographic.dem)/(sum(demographic.dem)+sum(demograph
 ## Simulated annealing parameters
 const safe_percentage = 55
 const safe_seats = 7 # Placeholder
+const non_safe_seats = num_parts - safe_seats
 const max_moves = 4
-const max_radius = 2
-const max_tries = 10
-const max_swaps = 250
+const max_radius = 1
+const max_tries = 5
+const max_swaps = 600
 const alpha = 0.95
-const temperature_steps = 200
+const temperature_steps = 150
 const T_min = alpha^temperature_steps
 
 
-throw_away_target = (num_parts*percent_dem-safe_percentage*safe_seats)/(num_parts - safe_seats)
-global target = append!([throw_away_target for i in 1:(num_parts - safe_seats)],
+const throw_away_target = (num_parts*percent_dem-safe_percentage*safe_seats)/(num_parts-safe_seats)
+const target = append!([throw_away_target for i in 1:(num_parts - safe_seats)],
     [safe_percentage for i in 1:safe_seats])
-
 
 ## Creates initial partition with Metis(Necessary for almost everything)
 districts = initialize_districts()
-
+dem_percentages(districts)
 ## Uncomment to draw the graph
-@time draw_graph(graph, districts.dis, "before") # Graph
-@time draw_graph(graph_nx, districts.dis, "before") # Shape
+draw_graph(graph, districts.dis, "before") # Graph
+#draw_graph(graph_nx, districts.dis, "before") # Shape
 
+## Records the data befo re the simulated annealing
+info_init = record_info(districts)
 
-## Record before data.
-connected_before = all_connected(districts.dis_arr)
-parity_before = all_parity(districts.pop)
-dem_percent_before = dem_percentages(districts)
-mean_dem_percent_before = mean(dem_percent_before)
-safe_dem_seats_before = length([p for p in dem_percent_before if p >= safe_percentage])
-
-#Print before data.
-println("Number of vertices = ", nv(graph))
-println("Connected? ", connected_before)
-println("Parity? ", parity_before)
-println("Dem percents = ", dem_percent_before)
-println("Mean dem percent = ", mean_dem_percent_before)
-println("Safe dem seats = ", safe_dem_seats_before)
-println("Target = ", target)
-println("Initial Bunch Radius: ", max_radius)
-#end #module Gerrymandering
+## Redistrict the graph
 @time districts = simulated_annealing(districts)
 
-connected_before = all_connected(districts.dis_arr)
-parity_before = all_parity(districts.pop)
-dem_percent_before = dem_percentages(districts)
-mean_dem_percent_before = mean(dem_percent_before)
-safe_dem_seats_before = length([p for p in dem_percent_before if p >= safe_percentage])
-println("Number of vertices = ", nv(graph))
-println("Connected? ", connected_before)
-println("Parity? ", parity_before)
-println("Dem percents = ", dem_percent_before)
-println("Mean dem percent = ", mean_dem_percent_before)
-println("Safe dem seats = ", safe_dem_seats_before)
-println("Target = ", target)
-println("Initial Bunch Radius: ", max_radius)
-draw_graph(graph, districts.dis, "after")
-draw_graph(graph_nx, districts.dis, "after")
-
-@time draw_graph(graph, districts.dis, "after") # Graph
-@time draw_graph(graph_nx, districts.dis, "after") # Shape
+## Records the data after the simulated annealing
+info = record_info(districts)
+print_info(info_init)
+print_info(info)
+#
+draw_graph(graph, districts.dis, "after") # Graph
+#draw_graph(graph_nx, districts.dis, "after") # Shape
+# #districts = initialize_districts()
+#end

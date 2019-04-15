@@ -1,3 +1,0 @@
-- _find_bunch_to_move():  change order and avoid checking for connectedness twice
-- SimulatedAnnealing(): deep_copy twice I think is unnecessary
-    - also I think it is possible to _do_move until it stops working
