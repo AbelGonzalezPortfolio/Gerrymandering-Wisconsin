@@ -83,7 +83,7 @@ function select_node(dis_arr, nodes_taken, part_to)
     p = sortperm(dem_share)
     boundary_by_dem = collect(district_boundary)[p]
 
-    if part_to == 1
+    if part_to in 1:non_safe_seats
         return boundary_by_dem[1]
     else
         return boundary
@@ -108,29 +108,33 @@ function get_initial_districts(state_boundary::Array{Int64})
 
 
     # Select initial seed
-    state_boundary = setdiff(state_boundary, nodes_taken)
-    initial_seed = rand(state_boundary)
-    add_node!(districts, initial_seed, 1, nodes_taken)
-    while districts.pop[1] < (parity-1500)
-        node_to_move = select_node(districts.dis_arr[1], nodes_taken, 1)
-        if node_to_move == false
-            break
-        end
-        add_node!(districts, node_to_move, 1, nodes_taken)
-    end
+    for d in 1:non_safe_seats
+        #state_boundary = setdiff(1:nv(graph), nodes_taken)
+        state_boundary = setdiff(state_boundary, nodes_taken)
 
-    # Rest of the nodes
-    nodes_leftover = setdiff(collect(1:nv(graph)), nodes_taken)
-    leftover_graph, vm = induced_subgraph(graph, nodes_leftover)
-    components = connected_components(leftover_graph)
-    sort!(components, by=length, rev=true)
-    for i in 2:length(components)
-        for node_to_move in components[i]
-            add_node!(districts, vm[node_to_move], 1, nodes_taken)
+        initial_seed = rand(state_boundary)
+        add_node!(districts, initial_seed, d, nodes_taken)
+        while districts.pop[d] < (parity-1500)
+            node_to_move = select_node(districts.dis_arr[d], nodes_taken, d)
+            if node_to_move == false
+                break
+            end
+            add_node!(districts, node_to_move, d, nodes_taken)
         end
+
+        # Rest of the nodes
+        nodes_leftover = setdiff(collect(1:nv(graph)), nodes_taken)
+        leftover_graph, vm = induced_subgraph(graph, nodes_leftover)
+        components = connected_components(leftover_graph)
+        sort!(components, by=length, rev=true)
+        for i in 2:length(components)
+            for node_to_move in components[i]
+                add_node!(districts, vm[node_to_move], d, nodes_taken)
+            end
+        end
+        nodes_leftover = setdiff(collect(1:nv(graph)), nodes_taken)
+        global leftover_graph, vm = induced_subgraph(graph, nodes_leftover)
     end
-    nodes_leftover = setdiff(collect(1:nv(graph)), dis_arr[1])
-    leftover_graph, vm = induced_subgraph(graph, nodes_leftover)
     return districts, vm
 end
 
@@ -156,11 +160,18 @@ end
 Run get_initial_districts 50 times in order to get best initial layout
 """
 function get_lowest_init(state_boundary)
-    current_dem_share = 100
     for i in 1:50
         districts, vm = get_initial_districts(state_boundary)
-        dem_share = dem_percentages(districts)[1]
-        if dem_share < 27
+        dem_share = dem_percentages(districts)[1:non_safe_seats]
+        low_enough = true
+        println(dem_share)
+        for j in dem_share
+            if (throw_away_target-2) > j || j > (throw_away_target+2)
+                low_enough = false
+                println("false")
+            end
+        end
+        if low_enough
             return districts, vm
         end
     end
@@ -174,19 +185,19 @@ Takes initial partition object and fill the rest with a metis partition
 """
 function partition_rest!(districts, vm)
     # Clean networkx graph
-    for i in districts.dis_arr[1]
-        graph_nx.remove_node(i-1)
-    end
-    targets = convert(Array{Any,1},[1/(num_parts-1) for i in 1:(num_parts-1)])
 
+    # for i in vm
+    #     graph_nx.remove_node(i)
+    # end
+    index_python_vm = [vm[i]-1 for i in 1:length(vm)]
+    subgraph_nx = graph_nx.subgraph(index_python_vm)
+    targets = convert(Array{Any,1},[1/safe_seats for i in 1:safe_seats])
     edgecuts, parts = metis.part_graph(
-        graph_nx, num_parts-1, contig=true, tpwgts=targets, ufactor = 1)
+        subgraph_nx, safe_seats, contig=true, tpwgts=targets, ufactor = 100)
 
     for i in 1:length(parts)
-        parts[i] += 2
+        parts[i] += (non_safe_seats+1)
     end
-    println(length(parts))
-    println(length(vm))
     for i in 1:length(parts)
         add_node!(districts, vm[i], parts[i])
     end

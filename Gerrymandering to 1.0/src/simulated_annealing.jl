@@ -10,7 +10,7 @@ function simulated_annealing(districts::DistrictData)
     T = 1.0
     steps_remaining = Int(round(temperature_steps))
     swaps = [max_swaps, 0]
-    while T > T_min
+    while T > T_min && current_score >= 1.1
         i = 1
         while i <= swaps[1]
             new_districts = deepcopy(districts)
@@ -29,7 +29,7 @@ function simulated_annealing(districts::DistrictData)
             i += 1
         end
         steps_remaining -= 1
-        #bunch_radius = Int(ceil(max_radius - (max_radius / temperature_steps) * (temperature_steps - steps_remaining)))
+        bunch_radius = Int(ceil(max_radius - (max_radius / temperature_steps) * (temperature_steps - steps_remaining)))
         dem_percents = sort!(dem_percentages(districts))
         T = T * alpha
         println("-------------------------------------")
@@ -65,11 +65,15 @@ end
 Set the amounf of districts to be moved
 """
 function shuffle_nodes(districts, bunch_radius)
-    part_to = rand(1:num_parts)
+    districts_tmp = deepcopy(districts)
+    part_to = rand((non_safe_seats+1):num_parts)
     num_moves = rand(1:max_moves)
 
     for i in 1:num_moves
         part_to, success = move_nodes(districts, part_to, bunch_radius)
+        if success == false
+            return districts_tmp
+        end
     end
     return districts
 end
@@ -90,7 +94,7 @@ function move_nodes(districts, part_to, bunch_radius)
         base_node_to_move = rand(boundary)
         part_from = districts.dis[base_node_to_move]
 
-        bunch_to_move, connected = get_bunch(bunch_radius, districts, base_node_to_move, part_from)
+        bunch_to_move, connected = get_bunch(bunch_radius, districts.dis_arr, base_node_to_move, part_from)
 
         if connected
             do_move(districts, part_to, part_from, bunch_to_move)
@@ -106,8 +110,8 @@ end
 
 Find a bunch and check if districts will be connected without it.
 """
-function get_bunch(bunch_radius, districts, base_node_to_move, part_from)
-    dis_graph, vmap = induced_subgraph(graph, districts.dis_arr[part_from])
+function get_bunch(bunch_radius, dis_arr, base_node_to_move, part_from)
+    dis_graph, vmap = induced_subgraph(graph, dis_arr[part_from])
     base_node = findfirst(vmap .== base_node_to_move::Int64)
     bunch_to_move = sort(neighborhood(dis_graph, base_node, bunch_radius), rev=true)
     b = nv(dis_graph)

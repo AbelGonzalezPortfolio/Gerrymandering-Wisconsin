@@ -5,7 +5,7 @@ Read a networkx graph gpickle (filename) file created in python and
 return a ::PyObject networkx graph
 """
 function get_nxgraph(filename::String)
-    graph = nx[:read_gpickle](filename)
+    graph = nx.read_gpickle(filename)
 
     return graph
 end
@@ -18,7 +18,7 @@ Convert LightGraphs(graph) to Networkx(graph_nx).
 """
 function convert_graph(graph::SimpleGraph)
     ajm = convert(Array, adjacency_matrix(graph))
-    graph_nx = nx[:Graph](ajm)
+    graph_nx = nx.Graph(ajm)
     return graph_nx
 end
 
@@ -29,7 +29,7 @@ end
 Convert Networkx(graph_nx) to LightGraphs(graph)
 """
 function convert_graph(graph_nx::PyObject)
-    matrix_nx = nx[:to_numpy_matrix](graph_nx)
+    matrix_nx = nx.to_numpy_matrix(graph_nx)
     graph = Graph(matrix_nx)
     return graph
 end
@@ -43,15 +43,15 @@ return instance of (DemographicData)
 """
 function get_demographic(graph_nx::PyObject)
     pop = collect(values(sort(Dict{Integer, Int64}(
-        nx[:get_node_attributes](graph_nx, "pop")))))
+        nx.get_node_attributes(graph_nx, "pop")))))
     pos = collect(values(sort(Dict{Integer, Tuple{Float64,Float64}}(
-        nx[:get_node_attributes](graph_nx, "pos")))))
+        nx.get_node_attributes(graph_nx, "pos")))))
     dem = collect(values(sort(Dict{Integer, Int64}(
-        nx[:get_node_attributes](graph_nx, "dem")))))
+        nx.get_node_attributes(graph_nx, "dem")))))
     rep = collect(values(sort(Dict{Integer, Int64}(
-        nx[:get_node_attributes](graph_nx, "rep")))))
+        nx.get_node_attributes(graph_nx, "rep")))))
     area = collect(values(sort(Dict{Integer, Int64}(
-        nx[:get_node_attributes](graph_nx, "rep")))))
+        nx.get_node_attributes(graph_nx, "rep")))))
 
     demographic = DemographicData(pos, pop, dem, rep, area)
     return demographic
@@ -63,11 +63,11 @@ end
 
 Create the intial partition of the graph using python's metis package
 """
-function initialize_districts()
+function initialize_districts_metis()
     println("Creating initial districts")
     targets = convert(Array{Any,1},[1/num_parts for i in 1:num_parts])
 
-    edgecuts, parts = metis[:part_graph](
+    edgecuts, parts = metis.part_graph(
         graph_nx, num_parts, contig=true, tpwgts=targets, ufactor = 100)
 
     for i in 1:length(parts)
@@ -108,21 +108,3 @@ function initialize_data(pickle_filename::String, shapef_filename::String)
 
     return graph, graph_nx, shapefile, demographic
 end
-
-
-struct DemographicData
-    pos::Array{Tuple{Float64, Float64}, 1}
-    pop::Array{Int64,1}
-    dem::Array{Int64,1}
-    rep::Array{Int64,1}
-    area::Array{Float64,1}
-end
-
-
-# mutable struct DistrictData
-#     dis::Array{Int64,1}
-#     dis_arr::Array{Array{Int64,1},1}
-#     dem::Array{Int64,1}
-#     rep::Array{Int64,1}
-#     pop::Array{Int64,1}
-# end
