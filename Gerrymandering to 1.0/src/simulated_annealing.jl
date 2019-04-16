@@ -65,15 +65,15 @@ end
 Set the amounf of districts to be moved
 """
 function shuffle_nodes(districts, bunch_radius)
-    districts_tmp = deepcopy(districts)
+    #districts_tmp = deepcopy(districts)
     part_to = rand((non_safe_seats+1):num_parts)
     num_moves = rand(1:max_moves)
 
     for i in 1:num_moves
         part_to, success = move_nodes(districts, part_to, bunch_radius)
-        if success == false
-            return districts_tmp
-        end
+        # if success == false
+        #     return districts_tmp
+        # end
     end
     return districts
 end

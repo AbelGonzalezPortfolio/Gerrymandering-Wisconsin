@@ -22,7 +22,7 @@ function connect_graph!(graph::SimpleGraph, graph_nx::PyObject, pos::Array)
         p = sortperm(distance)
         for i in 1:Int(ceil(length(components[c])/10))
             add_edge!(graph, components[c][p][i], main_component[idxs[p][i]][1])
-            graph_nx[:add_edge](components[c][p][i]-1, main_component[idxs[p][i]][1]-1)
+            graph_nx.add_edge(components[c][p][i]-1, main_component[idxs[p][i]][1]-1)
         end
     end
 end

@@ -49,6 +49,20 @@ function add_node!(districts, node::Int64, part_to)
     districts.pop[part_to] += demographic.pop[node]
     push!(districts.dis_arr[part_to], node)
 end
+
+
+"""
+    get_score_no_full(districts)
+
+Calculate a score based on dstance to target only on throw away districts
+"""
+function get_score_no_full(districts)
+    dem_share_arr = dem_percentages(districts)[1:non_safe_seats]
+    target_dem_share_arr = [throw_away_target for i in 1:non_safe_seats]
+    return norm(target_dem_share_arr-dem_share_arr)
+end
+
+
 """
     add_node!(districts, node, part_to, nodes_taken)
 
@@ -63,6 +77,7 @@ end
 function get_democratic_share(node)
     return demographic.dem[node]/(demographic.dem[node]+demographic.rep[node])
 end
+
 
 """
     select_node(dis_arr, nodes_taken, part_to)
@@ -83,7 +98,7 @@ function select_node(dis_arr, nodes_taken, part_to)
     p = sortperm(dem_share)
     boundary_by_dem = collect(district_boundary)[p]
 
-    if part_to == 1
+    if part_to in 1:non_safe_seats
         return boundary_by_dem[1]
     else
         return boundary
@@ -105,50 +120,40 @@ function get_initial_districts(state_boundary::Array{Int64})
     dis_arr = [Int64[] for i in 1:num_parts]
     districts = DistrictData(dis, dem, rep, pop, dis_arr)
     nodes_taken = Int64[]
+    vm = Int64[]
 
 
     # Select initial seed
-    state_boundary = setdiff(state_boundary, nodes_taken)
-    initial_seed = rand(state_boundary)
-    add_node!(districts, initial_seed, 1, nodes_taken)
-    while districts.pop[1] < (parity-1500)
-        node_to_move = select_node(districts.dis_arr[1], nodes_taken, 1)
-        if node_to_move == false
-            break
+    for d in 1:non_safe_seats
+        #state_boundary = setdiff(1:nv(graph), nodes_taken)
+        state_boundary = setdiff(state_boundary, nodes_taken)
+        initial_seed = rand(state_boundary)
+        add_node!(districts, initial_seed, d, nodes_taken)
+        while districts.pop[d] < (parity-1500)
+            node_to_move = select_node(districts.dis_arr[d], nodes_taken, d)
+            if node_to_move == false
+                break
+            end
+            add_node!(districts, node_to_move, d, nodes_taken)
         end
-        add_node!(districts, node_to_move, 1, nodes_taken)
-    end
 
-    # Rest of the nodes
-    nodes_leftover = setdiff(collect(1:nv(graph)), nodes_taken)
-    leftover_graph, vm = induced_subgraph(graph, nodes_leftover)
-    components = connected_components(leftover_graph)
-    sort!(components, by=length, rev=true)
-    for i in 2:length(components)
-        for node_to_move in components[i]
-            add_node!(districts, vm[node_to_move], 1, nodes_taken)
+        # Rest of the nodes
+        nodes_leftover = setdiff(collect(1:nv(graph)), nodes_taken)
+        leftover_graph, vm = induced_subgraph(graph, nodes_leftover)
+        components = connected_components(leftover_graph)
+        sort!(components, by=length, rev=true)
+        for i in 2:length(components)
+            for node_to_move in components[i]
+                add_node!(districts, vm[node_to_move], d, nodes_taken)
+            end
         end
+        nodes_leftover = setdiff(collect(1:nv(graph)), nodes_taken)
+        leftover_graph, vm = induced_subgraph(graph, nodes_leftover)
     end
-    nodes_leftover = setdiff(collect(1:nv(graph)), dis_arr[1])
-    leftover_graph, vm = induced_subgraph(graph, nodes_leftover)
     return districts, vm
 end
 
 
-# function get_lowest_init(state_boundary)
-#     current_dem_share = 100
-#     for i in 1:50
-#         global districts, vm = initialize_districts(state_boundary)
-#         dem_share = dem_percentages(districts)[1]
-#         if dem_share < current_dem_share
-#             global new_districts = deepcopy(districts) # need gloabl to work
-#             current_dem_share = dem_share
-#         end
-#     end
-#     println(length(vm))
-#     #partition_rest(new_districts, nodes_taken)
-#     return new_districts, vm
-# end
 
 """
     get_lowest_init(state_boundary)
@@ -156,14 +161,18 @@ end
 Run get_initial_districts 50 times in order to get best initial layout
 """
 function get_lowest_init(state_boundary)
-    current_dem_share = 100
+    districts, vm = get_initial_districts(state_boundary)
+    new_districts = deepcopy(districts)
+    new_vm = Int64[]
+    old_score = get_score_no_full(districts)
     for i in 1:50
         districts, vm = get_initial_districts(state_boundary)
-        dem_share = dem_percentages(districts)[1]
-        if dem_share < 27
-            return districts, vm
+        new_score = get_score_no_full(districts)
+        if new_score < old_score
+            new_districts, new_vm = deepcopy(districts), deepcopy(vm)
         end
     end
+    return new_districts, new_vm
 end
 
 
@@ -174,19 +183,19 @@ Takes initial partition object and fill the rest with a metis partition
 """
 function partition_rest!(districts, vm)
     # Clean networkx graph
-    for i in districts.dis_arr[1]
-        graph_nx.remove_node(i-1)
-    end
-    targets = convert(Array{Any,1},[1/(num_parts-1) for i in 1:(num_parts-1)])
 
+    # for i in vm
+    #     graph_nx.remove_node(i)
+    # end
+    index_python_vm = [vm[i]-1 for i in 1:length(vm)]
+    subgraph_nx = graph_nx.subgraph(index_python_vm)
+    println(length(subgraph_nx))
+    targets = convert(Array{Any,1},[1/safe_seats for i in 1:safe_seats])
     edgecuts, parts = metis.part_graph(
-        graph_nx, num_parts-1, contig=true, tpwgts=targets, ufactor = 1)
-
+        subgraph_nx, safe_seats, contig=true, tpwgts=targets, ufactor = 1)
     for i in 1:length(parts)
-        parts[i] += 2
+        parts[i] += (non_safe_seats+1)
     end
-    println(length(parts))
-    println(length(vm))
     for i in 1:length(parts)
         add_node!(districts, vm[i], parts[i])
     end
