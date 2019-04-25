@@ -17,8 +17,11 @@ end
 Convert LightGraphs(graph) to Networkx(graph_nx).
 """
 function convert_graph(graph::SimpleGraph)
-    ajm = convert(Array, adjacency_matrix(graph))
-    graph_nx = nx.Graph(ajm)
+    graph = Graph(length(graph_nx))
+    nx_edges = graph_nx.edges()
+    for e in nx_edges
+        add_edge!(graph, (e[1]+1), (e[2]+1))
+    end
     return graph_nx
 end
 
