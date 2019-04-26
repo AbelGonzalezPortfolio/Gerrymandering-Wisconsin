@@ -43,7 +43,10 @@ metis = pyimport("metis")
 nx = pyimport("networkx")
 gpd = pyimport("geopandas")
 plt = pyimport("matplotlib.pyplot")
-
+gplt = pyimport("geoplot")
+mpatches = pyimport("matplotlib.patches")
+cm = pyimport("matplotlib.cm")
+gcrs = pyimport("geoplot.crs")
 
 pickle_filename = joinpath("data", "wi14.gpickle")
 shapef_filename = joinpath("data","shapef", "Wards_Final_Geo_111312_2014_ED.shp")
@@ -79,12 +82,10 @@ const target = append!([throw_away_target for i in 1:(num_parts - safe_seats)],
 
 ## Creates initial partition with Metis(Necessary for almost everything)
 districts = initialize_districts()
-dem_percentages(districts)
 
 ## Uncomment to draw the graph
-draw_graph(graph, districts.dis, "before") # Graph
-draw_graph(graph_nx, districts.dis, "before") # Shape
-
+#draw_graph(graph, districts.dis, "0") # Graph
+draw_graph(graph_nx, districts, "0") # Shape
 ## Records the data befo re the simulated annealing
 info_init = record_info(districts)
 
@@ -96,7 +97,7 @@ info = record_info(districts)
 print_info(info_init)
 print_info(info)
 #
-draw_graph(graph, districts.dis, "after") # Graph
-draw_graph(graph_nx, districts.dis, "after") # Shape
+#draw_graph(graph, districts.dis, "$temperature_steps") # Graph
+draw_graph(graph_nx, districts.dis, "$temperature_steps") # Shape
 # #districts = initialize_districts()
 #end

@@ -125,8 +125,8 @@ function get_initial_districts(state_boundary::Array{Int64})
 
     # Select initial seed
     for d in 1:non_safe_seats
-        #state_boundary = setdiff(1:nv(graph), nodes_taken)
-        state_boundary = setdiff(state_boundary, nodes_taken)
+        state_boundary = setdiff(1:nv(graph), nodes_taken)
+        #state_boundary = setdiff(state_boundary, nodes_taken)
         initial_seed = rand(state_boundary)
         add_node!(districts, initial_seed, d, nodes_taken)
         while districts.pop[d] < (parity-1500)
@@ -165,11 +165,12 @@ function get_lowest_init(state_boundary)
     new_districts = deepcopy(districts)
     new_vm = Int64[]
     old_score = get_score_no_full(districts)
-    for i in 1:50
+    for i in 1:100
         districts, vm = get_initial_districts(state_boundary)
         new_score = get_score_no_full(districts)
         if new_score < old_score
             new_districts, new_vm = deepcopy(districts), deepcopy(vm)
+            old_score = new_score
         end
     end
     return new_districts, new_vm
@@ -189,7 +190,7 @@ function partition_rest!(districts, vm)
     # end
     index_python_vm = [vm[i]-1 for i in 1:length(vm)]
     subgraph_nx = graph_nx.subgraph(index_python_vm)
-    println(length(subgraph_nx))
+    #println(length(subgraph_nx))
     targets = convert(Array{Any,1},[1/safe_seats for i in 1:safe_seats])
     edgecuts, parts = metis.part_graph(
         subgraph_nx, safe_seats, contig=true, tpwgts=targets, ufactor = 1)
@@ -213,6 +214,7 @@ Then try to find lowest possible democratic share districts. Fills the rest
 with a metis partition returns the district object.
 """
 function initialize_districts()
+    println("Creating initial districts")
     state_boundary = get_state_boundary(demographic.pos)
     districts, vm = get_lowest_init(state_boundary)
     partition_rest!(districts, vm)

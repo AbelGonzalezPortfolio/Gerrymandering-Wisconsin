@@ -32,8 +32,11 @@ end
 Convert Networkx(graph_nx) to LightGraphs(graph)
 """
 function convert_graph(graph_nx::PyObject)
-    matrix_nx = nx.to_numpy_matrix(graph_nx)
-    graph = Graph(matrix_nx)
+    graph = Graph(length(graph_nx))
+    nx_edges = graph_nx.edges()
+    for e in nx_edges
+        add_edge!(graph, (e[1]+1), (e[2]+1))
+    end
     return graph
 end
 
