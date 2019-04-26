@@ -98,6 +98,6 @@ print_info(info_init)
 print_info(info)
 #
 #draw_graph(graph, districts.dis, "$temperature_steps") # Graph
-draw_graph(graph_nx, districts.dis, "$temperature_steps") # Shape
+draw_graph(graph_nx, districts, "$temperature_steps") # Shape
 # #districts = initialize_districts()
 #end
