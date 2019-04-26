@@ -17,8 +17,11 @@ end
 Convert LightGraphs(graph) to Networkx(graph_nx).
 """
 function convert_graph(graph::SimpleGraph)
-    ajm = convert(Array, adjacency_matrix(graph))
-    graph_nx = nx.Graph(ajm)
+    graph = Graph(length(graph_nx))
+    nx_edges = graph_nx.edges()
+    for e in nx_edges
+        add_edge!(graph, (e[1]+1), (e[2]+1))
+    end
     return graph_nx
 end
 
@@ -29,8 +32,11 @@ end
 Convert Networkx(graph_nx) to LightGraphs(graph)
 """
 function convert_graph(graph_nx::PyObject)
-    matrix_nx = nx.to_numpy_matrix(graph_nx)
-    graph = Graph(matrix_nx)
+    graph = Graph(length(graph_nx))
+    nx_edges = graph_nx.edges()
+    for e in nx_edges
+        add_edge!(graph, (e[1]+1), (e[2]+1))
+    end
     return graph
 end
 
@@ -99,6 +105,8 @@ function initialize_data(pickle_filename::String, shapef_filename::String)
     println("Initializing data")
     shapefile = gpd.read_file(shapef_filename)
     shapefile.insert(1, "districts", 1)
+    shapefile.insert(1, "dem_share_arr", 1)
+
 
     graph_nx = get_nxgraph(pickle_filename)
     graph = convert_graph(graph_nx)

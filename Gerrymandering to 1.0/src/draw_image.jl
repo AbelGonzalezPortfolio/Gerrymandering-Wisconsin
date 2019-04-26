@@ -7,11 +7,45 @@ function draw_graph(graph::SimpleGraph, dis::Array{Int64, 1}, name)
     draw(SVG(joinpath("images","graph_$name.svg")), gplot(graph, pos_x, pos_y, nodefillc=nodefillc))
 end
 
-function draw_graph(graph::PyObject, dis::Array{Int64, 1}, name)
-    shapefile["districts"] = dis
-    shapefile[:plot](column="districts", cmap="Set1")
-    plt[:savefig](joinpath("images", "shape_$name.png"))
+function draw_graph(graph::PyObject, districts::DistrictData, name)
+    dem_p = dem_percentages(districts)
+    new_dis = String[]
+
+    for i in 1:length(graph)
+        push!(new_dis, "$(districts.dis[i]): $(round(dem_p[districts.dis[i]],digits=2))")
+    end
+    draw_graph(graph, new_dis, name)
 end
+
+function draw_graph(graph::PyObject, dis::Array{String, 1}, name)
+    println("Drawing Shape")
+    shapefile."districts"=dis
+    fig, ax = plt.subplots(1, figsize=(10,8))
+    ax.set_aspect("equal")
+    shapefile.plot(ax=ax, column="districts", categorical=true, cmap="tab20", linewidth=0.8
+                        , legend=true)
+    ax.axis("off")
+    #ax.legend(labels=["27","27","27","27","27","27","27","27"], loc=0)
+    ax.set_title("District's democratic share")
+    plt.savefig(joinpath("images", "shape_$name.png"))
+end
+
+function draw_shape_dem_share()
+    dem_share_arr = Float64[]
+    for i in 1:nv(graph)
+        dem_share = demographic.dem[i]/(demographic.dem[i]+demographic.rep[i])
+        push!(dem_share_arr, dem_share)
+    end
+    shapefile."dem_share_arr"= pd.Series(dem_share_arr, index=shapefile.index)
+    fig, ax = plt.subplots(1, figsize=(10,8))
+    ax.set_aspect("equal")
+    shapefile.plot(ax=ax, column="dem_share_arr", cmap="seismic", linewidth=0.8
+                        , legend=true)
+    ax.axis("off")
+    ax.set_title("District's democratic share")
+    plt.savefig(joinpath("images", "shape_dem_share.png"))
+end
+
 
 function record_info(districts)
     info = Dict()

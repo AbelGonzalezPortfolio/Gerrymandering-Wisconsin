@@ -32,6 +32,8 @@ function simulated_annealing(districts::DistrictData)
         bunch_radius = Int(ceil(max_radius - (max_radius / temperature_steps) * (temperature_steps - steps_remaining)))
         dem_percents = sort!(dem_percentages(districts))
         T = T * alpha
+        #draw_graph(graph_nx, districts, "$(temperature_steps-steps_remaining)")
+        #draw_graph(graph_nx, districts.dis, "$(temperature_steps-steps_remaining)")
         println("-------------------------------------")
         println("Steps Remaining: ", steps_remaining)
         println("Bunch Radius: ", bunch_radius)
@@ -71,9 +73,9 @@ function shuffle_nodes(districts, bunch_radius)
 
     for i in 1:num_moves
         part_to, success = move_nodes(districts, part_to, bunch_radius)
-        # if success == false
-        #     return districts_tmp
-        # end
+        #if success == false
+        #    return districts_tmp
+        #end
     end
     return districts
 end
