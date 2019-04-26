@@ -105,6 +105,8 @@ function initialize_data(pickle_filename::String, shapef_filename::String)
     println("Initializing data")
     shapefile = gpd.read_file(shapef_filename)
     shapefile.insert(1, "districts", 1)
+    shapefile.insert(1, "dem_share_arr", 1)
+
 
     graph_nx = get_nxgraph(pickle_filename)
     graph = convert_graph(graph_nx)

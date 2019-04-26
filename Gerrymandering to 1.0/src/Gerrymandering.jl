@@ -43,10 +43,8 @@ metis = pyimport("metis")
 nx = pyimport("networkx")
 gpd = pyimport("geopandas")
 plt = pyimport("matplotlib.pyplot")
-gplt = pyimport("geoplot")
-mpatches = pyimport("matplotlib.patches")
-cm = pyimport("matplotlib.cm")
-gcrs = pyimport("geoplot.crs")
+pd = pyimport("pandas")
+
 
 pickle_filename = joinpath("data", "wi14.gpickle")
 shapef_filename = joinpath("data","shapef", "Wards_Final_Geo_111312_2014_ED.shp")

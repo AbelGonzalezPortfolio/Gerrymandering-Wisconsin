@@ -30,6 +30,23 @@ function draw_graph(graph::PyObject, dis::Array{String, 1}, name)
     plt.savefig(joinpath("images", "shape_$name.png"))
 end
 
+function draw_shape_dem_share()
+    dem_share_arr = Float64[]
+    for i in 1:nv(graph)
+        dem_share = demographic.dem[i]/(demographic.dem[i]+demographic.rep[i])
+        push!(dem_share_arr, dem_share)
+    end
+    shapefile."dem_share_arr"= pd.Series(dem_share_arr, index=shapefile.index)
+    fig, ax = plt.subplots(1, figsize=(10,8))
+    ax.set_aspect("equal")
+    shapefile.plot(ax=ax, column="dem_share_arr", cmap="seismic", linewidth=0.8
+                        , legend=true)
+    ax.axis("off")
+    ax.set_title("District's democratic share")
+    plt.savefig(joinpath("images", "shape_dem_share.png"))
+end
+
+
 function record_info(districts)
     info = Dict()
     info["nv"] = nv(graph)
