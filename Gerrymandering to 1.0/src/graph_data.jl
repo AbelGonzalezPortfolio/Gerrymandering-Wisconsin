@@ -79,7 +79,7 @@ function initialize_districts_metis()
     for i in 1:length(parts)
         parts[i] += 1
     end
-
+    
     dis_array = [Int64[] for i in 1:num_parts]
     pop = zeros(Int64, num_parts)
     dem = zeros(Int64, num_parts)
@@ -90,7 +90,7 @@ function initialize_districts_metis()
         dem[parts[i]] += demographic.dem[i]
         rep[parts[i]] += demographic.rep[i]
     end
-    districts = DistrictData(parts, dis_array, dem, rep, pop)
+    districts = DistrictData(parts, dem, rep, pop, dis_array)
     return districts
 end
 

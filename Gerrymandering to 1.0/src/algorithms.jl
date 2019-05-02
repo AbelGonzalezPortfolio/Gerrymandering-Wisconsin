@@ -58,3 +58,17 @@ function dem_percentages(districts::DistrictData)
     end
     return sort!(dem_percentages)
 end
+
+function check_result(districts)
+    pop = [0 for i in 1:num_parts]
+    rep = [0 for i in 1:num_parts]
+    dem = [0 for i in 1:num_parts]
+    for i in 1:nv(graph)
+        d = districts.dis[i]
+
+        pop[d] += demographic.pop[i]
+        rep[d] += demographic.rep[i]
+        dem[d] += demographic.dem[i]
+    end
+    return pop, rep, dem
+end

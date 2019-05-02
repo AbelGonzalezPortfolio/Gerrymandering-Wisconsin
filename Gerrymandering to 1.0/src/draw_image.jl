@@ -27,23 +27,23 @@ function draw_graph(graph::PyObject, dis::Array{String, 1}, name)
     ax.axis("off")
     #ax.legend(labels=["27","27","27","27","27","27","27","27"], loc=0)
     ax.set_title("District's democratic share")
-    plt.savefig(joinpath("images", "shape_$name.png"))
+    plt.savefig(joinpath("images", "shape_$name.png"), dpi=400)
 end
 
-function draw_shape_dem_share()
-    dem_share_arr = Float64[]
-    for i in 1:nv(graph)
-        dem_share = demographic.dem[i]/(demographic.dem[i]+demographic.rep[i])
-        push!(dem_share_arr, dem_share)
-    end
+function draw_shape_dem_share(dem_share_arr)
+    # dem_share_arr = Float64[]
+    # for i in 1:nv(graph)
+    #     dem_share = demographic.rep[i]/(demographic.dem[i]+demographic.rep[i])
+    #     push!(dem_share_arr, dem_share)
+    # end
     shapefile."dem_share_arr"= pd.Series(dem_share_arr, index=shapefile.index)
     fig, ax = plt.subplots(1, figsize=(10,8))
     ax.set_aspect("equal")
-    shapefile.plot(ax=ax, column="dem_share_arr", cmap="seismic", linewidth=0.8
-                        , legend=true)
+    shapefile.plot(ax=ax, column="dem_share_arr", cmap="seismic", linewidth=0.8,
+                        legend=true)
     ax.axis("off")
     ax.set_title("District's democratic share")
-    plt.savefig(joinpath("images", "shape_dem_share.png"))
+    plt.savefig(joinpath("images", "shape_dem_share.png"), dpi=400)
 end
 
 

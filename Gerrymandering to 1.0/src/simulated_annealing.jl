@@ -29,7 +29,7 @@ function simulated_annealing(districts::DistrictData)
             i += 1
         end
         steps_remaining -= 1
-        bunch_radius = Int(ceil(max_radius - (max_radius / temperature_steps) * (temperature_steps - steps_remaining)))
+        #bunch_radius = Int(floor(max_radius - (max_radius / temperature_steps) * (temperature_steps - steps_remaining)))
         dem_percents = sort!(dem_percentages(districts))
         T = T * alpha
         #draw_graph(graph_nx, districts, "$(temperature_steps-steps_remaining)")
