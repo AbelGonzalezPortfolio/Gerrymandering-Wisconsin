@@ -29,7 +29,7 @@ function simulated_annealing(districts::DistrictData)
             i += 1
         end
         steps_remaining -= 1
-        #bunch_radius = Int(floor(max_radius - (max_radius / temperature_steps) * (temperature_steps - steps_remaining)))
+        bunch_radius = Int(floor(max_radius - (max_radius / temperature_steps) * (temperature_steps - steps_remaining)))
         dem_percents = sort!(dem_percentages(districts))
         T = T * alpha
         #draw_graph(graph_nx, districts, "$(temperature_steps-steps_remaining)")
@@ -74,7 +74,7 @@ function shuffle_nodes(districts, bunch_radius)
     for i in 1:num_moves
         part_to, success = move_nodes(districts, part_to, bunch_radius)
         #if success == false
-        #    return districts_tmp
+        #    return districts
         #end
     end
     return districts
@@ -103,7 +103,7 @@ function move_nodes(districts, part_to, bunch_radius)
             return part_from, true
         end
     end
-    return part_to, false
+    return rand((non_safe_seats+1):num_parts), false
 end
 
 
@@ -120,6 +120,7 @@ function get_bunch(bunch_radius, dis_arr, base_node_to_move, part_from)
     for i in 1:length(bunch_to_move)
         rem_vertex!(dis_graph, (bunch_to_move[i]))
     end
+    bunch_to_move = collect(Set(bunch_to_move))
     connected_without_bunch = is_connected(dis_graph)
     bunch = [vmap[b] for b in bunch_to_move]
     return bunch, connected_without_bunch

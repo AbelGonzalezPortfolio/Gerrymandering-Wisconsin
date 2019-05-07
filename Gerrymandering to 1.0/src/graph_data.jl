@@ -59,7 +59,11 @@ function get_demographic(graph_nx::PyObject)
     area = collect(values(sort(Dict{Integer, Int64}(
         nx.get_node_attributes(graph_nx, "rep")))))
 
-    demographic = DemographicData(pos, pop, dem, rep, area)
+    if party == "dem"
+        demographic = DemographicData(pos, pop, dem, rep, area)
+    elseif party == "rep"
+        demographic = DemographicData(pos, pop, rep, dem, area)
+    end
     return demographic
 end
 
@@ -74,12 +78,12 @@ function initialize_districts_metis()
     targets = convert(Array{Any,1},[1/num_parts for i in 1:num_parts])
 
     edgecuts, parts = metis.part_graph(
-        graph_nx, num_parts, contig=true, tpwgts=targets, ufactor = 100)
+        graph_nx, num_parts, contig=true, tpwgts=targets, ufactor = 1)
 
     for i in 1:length(parts)
         parts[i] += 1
     end
-    
+
     dis_array = [Int64[] for i in 1:num_parts]
     pop = zeros(Int64, num_parts)
     dem = zeros(Int64, num_parts)

@@ -1,5 +1,5 @@
 push!(LOAD_PATH, "./src/")
-#module Gerrymandering
+module Gerrymandering
 
 using Colors
 using PyCall
@@ -12,7 +12,9 @@ using NearestNeighbors
 using ConcaveHull
 using StatsBase
 using Random
-#using Debugger
+using Plots
+
+export gerrymander_state
 
 struct DemographicData
     pos::Array{Tuple{Float64, Float64}, 1}
@@ -29,6 +31,7 @@ mutable struct DistrictData
     pop::Array{Int64,1}
     dis_arr::Array{Array{Int64,1},1}
 end
+
 include("graph_data.jl")
 include("score.jl")
 include("topology.jl")
@@ -36,7 +39,7 @@ include("draw_image.jl")
 include("algorithms.jl")
 include("simulated_annealing.jl")
 include("initial_districts.jl")
-
+include("compactness.jl")
 
 push!(PyVector(pyimport("sys")."path"), "./src/")
 metis = pyimport("metis")
@@ -45,57 +48,53 @@ gpd = pyimport("geopandas")
 plt = pyimport("matplotlib.pyplot")
 pd = pyimport("pandas")
 
-
-pickle_filename = joinpath("data", "wi14.gpickle")
-shapef_filename = joinpath("data","shapef", "Wards_Final_Geo_111312_2014_ED.shp")
-
-
 ## Graph Paramaters
 const num_parts = 8
 const par_thresh = 0.01
-const graph, graph_nx, shapefile, demographic =
-    initialize_data(pickle_filename, shapef_filename)
-
-
-const parity = sum(demographic.pop)/num_parts
-const percent_dem = 100*sum(demographic.dem)/(sum(demographic.dem)+sum(demographic.rep))
-
+const party = "dem"
+const pickle_filename = joinpath("data", "wi14.gpickle")
+const shapef_filename = joinpath("data", "wi14", "wi14.shp")
 
 ## Simulated annealing parameters
 const safe_percentage = 55
-const safe_seats = 7 # Placeholder
-const non_safe_seats = num_parts - safe_seats
+const safe_seats = 7 # It would be cool if we could calculate it
 const max_moves = 4
-const max_radius = 1
+const max_radius = 2
 const max_tries = 5
-const max_swaps = 600
+const max_swaps = 500
 const alpha = 0.95
 const temperature_steps = 150
+
+
 const T_min = alpha^temperature_steps
-
-
+const graph, graph_nx, shapefile, demographic =
+    initialize_data(pickle_filename, shapef_filename)
+const parity = sum(demographic.pop)/num_parts
+const percent_dem = 100*sum(demographic.dem)/(sum(demographic.dem)+sum(demographic.rep))
+const non_safe_seats = num_parts - safe_seats
 const throw_away_target = (num_parts*percent_dem-safe_percentage*safe_seats)/(num_parts-safe_seats)
 const target = append!([throw_away_target for i in 1:(num_parts - safe_seats)],
     [safe_percentage for i in 1:safe_seats])
 
-## Creates initial partition with Metis(Necessary for almost everything)
-districts = initialize_districts()
+function gerrymander_state()
 
-## Uncomment to draw the graph
-#draw_graph(graph, districts.dis, "0") # Graph
-draw_graph(graph_nx, districts, "0") # Shape
-## Records the data befo re the simulated annealing
-info_init = record_info(districts)
+    ## Creates initial partition with Metis
+    districts = initialize_districts()
 
-## Redistrict the graph
-@time districts = simulated_annealing(districts)
+    draw_shape(graph_nx, districts, "0")
+    info_init = record_info(districts)
 
-## Records the data after the simulated annealing
-info = record_info(districts)
-print_info(info_init)
-print_info(info)
-#
-#draw_graph(graph, districts.dis, "$temperature_steps") # Graph
-draw_graph(graph_nx, districts, "$temperature_steps") # Shape
-# #districts = initialize_districts()
-#end
+    @time districts = simulated_annealing(districts)
+
+    info = record_info(districts)
+    print_info(info_init)
+    print_info(info)
+
+    draw_shape(graph_nx, districts, "$temperature_steps")
+
+    println(check_result(districts))
+end
+end #module Gerrymandering
+
+using Gerrymandering
+gerrymander_state()
