@@ -13,57 +13,46 @@ function draw_graph(graph::SimpleGraph, dis::Array{Int64, 1}, name)
 end
 
 """
-    draw_graph(graph, districts, name)
+    draw_shape(districts, name)
 
-Draw and image of the districts using the shape objects.
-
-Particularly creates an array of the same length as the graph, then fills
-this array with the democratic share and district number of each
-of the differents district.
-Ex. [1: 32.00]
+Draw the shapes with sliders indicating democrtic share
 """
-function draw_shape(graph::PyObject, districts::DistrictData, name)
-    dem_p = dem_percentages(districts)
-    new_dis = String[]
+function draw_shape(districts::DistrictData, name)
+    fig, ax = plt.subplots(1, figsize=(12,8))
+    plt.subplots_adjust(left=-.15)
 
-    for i in 1:length(graph)
-        push!(new_dis, "$(districts.dis[i]): $(round(dem_p[districts.dis[i]],digits=2))")
+    shapefile.plot(ax=ax, column = districts.dis, cmap="tab20",
+    legend=true, categorical=true)
+
+    for i in 1:num_parts
+        axfreq = plt.axes([0.7, 0.87-0.0256*i, 0.17, 0.020], facecolor="red")
+        sl = widgets.Slider(axfreq, string(i), 1, 100,
+             valinit=100*get_democratic_share(districts.dem[i],districts.rep[i]))
     end
 
-    draw_shape(graph, new_dis, name)
-end
-
-"""
-    draw_shape(graph, dis, name)
-
-Draw image of shape using column districts as color
-"""
-function draw_shape(graph::PyObject, dis::Array{String, 1}, name)
-    println("Drawing Shape")
-    shapefile."districts"=dis
-    fig, ax = plt.subplots(1, figsize=(10,8))
-    ax.set_aspect("equal")
-    shapefile.plot(ax=ax, column="districts", categorical=true, cmap="tab20", linewidth=0.8
-                        , legend=true)
     ax.axis("off")
-    ax.set_title("District's democratic share")
-    plt.savefig(joinpath("images", "shape_$name.png"), dpi=400)
+    plt.savefig(joinpath("images", "shape_$(name).png"), dpi=400)
+    plt.close(fig)
 end
+
 
 """
     draw_shape_dem_share(dem_share_arr)
 
 Draw a map with the democratic share by census tract
 """
-function draw_shape_dem_share(dem_share_arr)
-    shapefile."dem_share_arr"= pd.Series(dem_share_arr, index=shapefile.index)
-    fig, ax = plt.subplots(1, figsize=(10,8))
-    ax.set_aspect("equal")
-    shapefile.plot(ax=ax, column="dem_share_arr", cmap="seismic", linewidth=0.8,
-                        legend=true)
-    ax.axis("off")
-    ax.set_title("District's democratic share")
-    plt.savefig(joinpath("images", "shape_dem_share.png"), dpi=400)
+function draw_dem_share()
+    shares = Float64[]
+
+    for i in 1:nv(graph)
+        share = -1*demographic.dem[i]/(demographic.dem[i]+demographic.rep[i])
+        push!(shares, share)
+    end
+
+    shapefile."to_draw" = pd.Series(shares,index=shapefile.index)
+
+    shapefile.plot(column=shares, cmap="seismic")
+    plt.savefig("dem_share_1", dpi=300)
 end
 
 """
@@ -79,7 +68,7 @@ function record_info(districts::DistrictData)
     info["connected"] = all_connected(districts.dis_arr)
     info["parity"] = all_parity(districts.pop)
     info["dem_percent"] = dem_percentages(districts)
-    info["mean_dem_percent"] = mean(percent_dem)
+    info["mean_dem_percent"] = 1
     info["safe_dem_seats"] = length([p for p in percent_dem if p >= safe_percentage])
     return info
 end

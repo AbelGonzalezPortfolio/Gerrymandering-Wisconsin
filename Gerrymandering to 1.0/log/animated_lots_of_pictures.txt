@@ -1,0 +1,19 @@
+17713.033040 seconds (2.55 G allocations: 353.338 GiB, 0.40% gc time)
+***********************************
+Number of vertices = 6926
+Connected? true
+Parity? false
+Dem percents = Any[34.4851, 38.7346, 44.5116, 51.631, 57.9411, 58.5043, 61.1405, 68.2064]
+Compactness : Avg = 0.764273639884994, Min = 0.5696296284902723
+Target = [31.5328, 55.0, 55.0, 55.0, 55.0, 55.0, 55.0, 55.0]
+Mean dem percent = 1
+Safe dem seats = 0
+***********************************
+Number of vertices = 6926
+Connected? true
+Parity? true
+Dem percents = Any[33.4232, 54.8662, 54.9335, 54.9449, 54.953, 54.9676, 54.9877, 55.0076]
+Compactness : Avg = 0.5655867151849858, Min = 0.40264742884252763
+Target = [31.5328, 55.0, 55.0, 55.0, 55.0, 55.0, 55.0, 55.0]
+Mean dem percent = 1
+Safe dem seats = 0

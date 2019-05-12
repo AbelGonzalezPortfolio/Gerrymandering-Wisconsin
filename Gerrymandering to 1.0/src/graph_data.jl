@@ -47,23 +47,27 @@ end
 Get the demographic data from (graph_nx) and
 return instance of (DemographicData)
 """
-function get_demographic(graph_nx::PyObject)
-    pop = collect(values(sort(Dict{Integer, Int64}(
-        nx.get_node_attributes(graph_nx, "pop")))))
+function get_demographic(graph_nx::PyObject, shapefile)
+    # pop = collect(values(sort(Dict{Integer, Int64}(
+    #     nx.get_node_attributes(graph_nx, "pop")))))
     pos = collect(values(sort(Dict{Integer, Tuple{Float64,Float64}}(
-        nx.get_node_attributes(graph_nx, "pos")))))
-    dem = collect(values(sort(Dict{Integer, Int64}(
-        nx.get_node_attributes(graph_nx, "dem")))))
-    rep = collect(values(sort(Dict{Integer, Int64}(
-        nx.get_node_attributes(graph_nx, "rep")))))
+          nx.get_node_attributes(graph_nx, "pos")))))
+    # dem = collect(values(sort(Dict{Integer, Int64}(
+    #     nx.get_node_attributes(graph_nx, "dem")))))
+    # rep = collect(values(sort(Dict{Integer, Int64}(
+    #     nx.get_node_attributes(graph_nx, "rep")))))
     area = collect(values(sort(Dict{Integer, Int64}(
-        nx.get_node_attributes(graph_nx, "rep")))))
-
-    if party == "dem"
-        demographic = DemographicData(pos, pop, dem, rep, area)
-    elseif party == "rep"
-        demographic = DemographicData(pos, pop, rep, dem, area)
-    end
+          nx.get_node_attributes(graph_nx, "rep")))))
+    #
+    # if party == "dem"
+    #     demographic = DemographicData(pos, pop, dem, rep, area)
+    # elseif party == "rep"
+    #     demographic = DemographicData(pos, pop, rep, dem, area)
+    # end
+    pop = collect(shapefile."PERSONS")
+    rep = collect(shapefile."USHREP16")
+    dem = collect(shapefile."USHDEM16")
+    demographic = DemographicData(pos, pop, dem, rep, area)
     return demographic
 end
 
@@ -115,7 +119,7 @@ function initialize_data(pickle_filename::String, shapef_filename::String)
     graph_nx = get_nxgraph(pickle_filename)
     graph = convert_graph(graph_nx)
 
-    demographic = get_demographic(graph_nx)
+    demographic = get_demographic(graph_nx, shapefile)
     connect_graph!(graph, graph_nx, demographic.pos)
 
     return graph, graph_nx, shapefile, demographic

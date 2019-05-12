@@ -116,3 +116,12 @@ function get_lowest_district()
         return rep/(dem+rep), pop
     end
 end
+
+"""
+    get_democratic_share(dem, rep)
+
+Calculate the democratic share given democrats and republicans.
+"""
+function get_democratic_share(dem::Int64, rep::Int64)
+    return dem/(dem+rep)
+end

@@ -13,6 +13,8 @@ using ConcaveHull
 using StatsBase
 using Random
 using Plots
+using Pandas
+
 
 export gerrymander_state
 
@@ -40,6 +42,8 @@ include("algorithms.jl")
 include("simulated_annealing.jl")
 include("initial_districts.jl")
 include("compactness.jl")
+include("tmp.jl")
+
 
 push!(PyVector(pyimport("sys")."path"), "./src/")
 metis = pyimport("metis")
@@ -47,21 +51,22 @@ nx = pyimport("networkx")
 gpd = pyimport("geopandas")
 plt = pyimport("matplotlib.pyplot")
 pd = pyimport("pandas")
+widgets = pyimport("matplotlib.widgets")
 
 ## Graph Paramaters
 const num_parts = 8
 const par_thresh = 0.01
 const party = "dem"
-const pickle_filename = joinpath("data", "wi14.gpickle")
-const shapef_filename = joinpath("data", "wi14", "wi14.shp")
+const pickle_filename = joinpath("data", "wi16.gpickle")
+const shapef_filename = joinpath("data", "wi16", "wi16.shp")
 
 ## Simulated annealing parameters
 const safe_percentage = 55
 const safe_seats = 7 # It would be cool if we could calculate it
 const max_moves = 4
-const max_radius = 2
+const max_radius = 1
 const max_tries = 5
-const max_swaps = 500
+const max_swaps = 600
 const alpha = 0.95
 const temperature_steps = 150
 
@@ -76,12 +81,17 @@ const throw_away_target = (num_parts*percent_dem-safe_percentage*safe_seats)/(nu
 const target = append!([throw_away_target for i in 1:(num_parts - safe_seats)],
     [safe_percentage for i in 1:safe_seats])
 
+
+"""
+    gerrymander_state()
+
+Main function, creates initial districts and tries to gerrymander the state
+"""
 function gerrymander_state()
-
     ## Creates initial partition with Metis
-    districts = initialize_districts()
+    districts = initialize_districts_metis()
 
-    draw_shape(graph_nx, districts, "0")
+    draw_shape(districts, "0")
     info_init = record_info(districts)
 
     @time districts = simulated_annealing(districts)
@@ -90,11 +100,8 @@ function gerrymander_state()
     print_info(info_init)
     print_info(info)
 
-    draw_shape(graph_nx, districts, "$temperature_steps")
-
     println(check_result(districts))
 end
-end #module Gerrymandering
 
-using Gerrymandering
 gerrymander_state()
+end #module Gerrymandering
