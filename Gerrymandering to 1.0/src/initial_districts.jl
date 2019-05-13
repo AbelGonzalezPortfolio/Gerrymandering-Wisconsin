@@ -59,7 +59,7 @@ Calculate a score based on dstance to target only on throw away districts
 function get_score_no_full(districts)
     dem_share_arr = dem_percentages(districts)[1:non_safe_seats]
     target_dem_share_arr = [throw_away_target for i in 1:non_safe_seats]
-    return norm(target_dem_share_arr-dem_share_arr)
+    return norm(dem_share_arr-target_dem_share_arr)
 end
 
 
@@ -97,10 +97,10 @@ function select_node(dis_arr, nodes_taken, part_to)
     end
     p = sortperm(dem_share)
     boundary_by_dem = collect(district_boundary)[p]
-
     if part_to in 1:non_safe_seats
         return boundary_by_dem[1]
     else
+        #println("ksksk")
         return boundary
     end
 end

@@ -58,3 +58,70 @@ function dem_percentages(districts::DistrictData)
     end
     return sort!(dem_percentages)
 end
+
+
+"""
+    check_result(districts)
+
+Check that demographics in DistrictData match actual demographic data.
+If result are all 0 everything is correct.
+"""
+function check_result(districts::DistrictData)
+    pop = [0 for i in 1:num_parts]
+    rep = [0 for i in 1:num_parts]
+    dem = [0 for i in 1:num_parts]
+    for i in 1:nv(graph)
+        d = districts.dis[i]
+
+        pop[d] += demographic.pop[i]
+        rep[d] += demographic.rep[i]
+        dem[d] += demographic.dem[i]
+    end
+    return districts.pop - pop, districts.rep - rep, districts.dem - dem
+end
+
+"""
+    get_lowest_district()
+
+Returns the lowest possible for the data,
+"""
+function get_lowest_district()
+    dem_share_arr = Float64[]
+    for i in 1:nv(graph)
+        dem_share = get_democratic_share(i)
+        push!(dem_share_arr, dem_share)
+    end
+    if party == "dem"
+        p = sortperm(dem_share_arr)
+    elseif party == "rep"
+        p = sortperm(dem_share_arr, rev = true)
+    end
+    n = collect(1:nv(graph))[p]
+
+    to_draw_array = [false for i in 1:nv(graph)]
+    pop = 0
+    dem = 0
+    rep = 0
+    i = 1
+    while pop < parity-1500
+        to_draw_array[n[i]] = true
+        pop += demographic.pop[n[i]]
+        dem += demographic.dem[n[i]]
+        rep += demographic.rep[n[i]]
+        i += 1
+    end
+    if party == "dem"
+        return dem/(dem+rep), pop
+    elseif party == "rep"
+        return rep/(dem+rep), pop
+    end
+end
+
+"""
+    get_democratic_share(dem, rep)
+
+Calculate the democratic share given democrats and republicans.
+"""
+function get_democratic_share(dem::Int64, rep::Int64)
+    return dem/(dem+rep)
+end

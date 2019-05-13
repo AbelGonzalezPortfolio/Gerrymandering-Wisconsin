@@ -10,6 +10,8 @@ function simulated_annealing(districts::DistrictData)
     T = 1.0
     steps_remaining = Int(round(temperature_steps))
     swaps = [max_swaps, 0]
+    count_ = 1
+    count_1 = 1
     while T > T_min && current_score >= 1.1
         i = 1
         while i <= swaps[1]
@@ -22,6 +24,11 @@ function simulated_annealing(districts::DistrictData)
                 if new_score < current_score
                     println("Score: ", new_score)
                 end
+                # if count_%10 == 0
+                #     draw_shape(districts, "$count_1")
+                #     count_1 += 1
+                # end
+                # count_ += 1
                 swaps[2] += 1
                 districts = new_districts
                 current_score = new_score
@@ -29,7 +36,7 @@ function simulated_annealing(districts::DistrictData)
             i += 1
         end
         steps_remaining -= 1
-        bunch_radius = Int(ceil(max_radius - (max_radius / temperature_steps) * (temperature_steps - steps_remaining)))
+        #bunch_radius = Int(floor(max_radius - (max_radius / temperature_steps) * (temperature_steps - steps_remaining)))
         dem_percents = sort!(dem_percentages(districts))
         T = T * alpha
         #draw_graph(graph_nx, districts, "$(temperature_steps-steps_remaining)")
@@ -68,13 +75,13 @@ Set the amounf of districts to be moved
 """
 function shuffle_nodes(districts, bunch_radius)
     #districts_tmp = deepcopy(districts)
-    part_to = rand((non_safe_seats+1):num_parts)
+    part_to = rand(1:num_parts)
     num_moves = rand(1:max_moves)
 
     for i in 1:num_moves
         part_to, success = move_nodes(districts, part_to, bunch_radius)
         #if success == false
-        #    return districts_tmp
+        #    return districts
         #end
     end
     return districts
@@ -103,7 +110,7 @@ function move_nodes(districts, part_to, bunch_radius)
             return part_from, true
         end
     end
-    return part_to, false
+    return rand((non_safe_seats+1):num_parts), false
 end
 
 
@@ -120,6 +127,7 @@ function get_bunch(bunch_radius, dis_arr, base_node_to_move, part_from)
     for i in 1:length(bunch_to_move)
         rem_vertex!(dis_graph, (bunch_to_move[i]))
     end
+    bunch_to_move = collect(Set(bunch_to_move))
     connected_without_bunch = is_connected(dis_graph)
     bunch = [vmap[b] for b in bunch_to_move]
     return bunch, connected_without_bunch

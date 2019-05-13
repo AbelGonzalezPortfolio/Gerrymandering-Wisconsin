@@ -1,3 +1,8 @@
+"""
+    draw_graph(graph, dis, name)
+
+Draw an image of the network graph.
+"""
 function draw_graph(graph::SimpleGraph, dis::Array{Int64, 1}, name)
     color = distinguishable_colors(num_parts+1, [RGB(1,1,1)])
     node_labels = collect(vertices(graph))
@@ -7,64 +12,93 @@ function draw_graph(graph::SimpleGraph, dis::Array{Int64, 1}, name)
     draw(SVG(joinpath("images","graph_$name.svg")), gplot(graph, pos_x, pos_y, nodefillc=nodefillc))
 end
 
-function draw_graph(graph::PyObject, districts::DistrictData, name)
-    dem_p = dem_percentages(districts)
-    new_dis = String[]
+"""
+    draw_shape(districts, name)
 
-    for i in 1:length(graph)
-        push!(new_dis, "$(districts.dis[i]): $(round(dem_p[districts.dis[i]],digits=2))")
+Draw the shapes with sliders indicating democrtic share
+"""
+function draw_shape(districts::DistrictData, name)
+    fig, ax = plt.subplots(1, figsize=(12,8))
+    plt.subplots_adjust(left=-.15)
+
+    shapefile.plot(ax=ax, column = districts.dis, cmap="tab20",
+    legend=true, categorical=true)
+
+    for i in 1:num_parts
+        axfreq = plt.axes([0.7, 0.87-0.0256*i, 0.17, 0.020], facecolor="red")
+        sl = widgets.Slider(axfreq, string(i), 1, 100,
+             valinit=100*get_democratic_share(districts.dem[i],districts.rep[i]))
     end
-    draw_graph(graph, new_dis, name)
-end
 
-function draw_graph(graph::PyObject, dis::Array{String, 1}, name)
-    println("Drawing Shape")
-    shapefile."districts"=dis
-    fig, ax = plt.subplots(1, figsize=(10,8))
-    ax.set_aspect("equal")
-    shapefile.plot(ax=ax, column="districts", categorical=true, cmap="tab20", linewidth=0.8
-                        , legend=true)
     ax.axis("off")
-    #ax.legend(labels=["27","27","27","27","27","27","27","27"], loc=0)
-    ax.set_title("District's democratic share")
-    plt.savefig(joinpath("images", "shape_$name.png"))
+    plt.savefig(joinpath("images", "shape_$(name).png"), dpi=400)
+    plt.close(fig)
 end
 
-function draw_shape_dem_share()
-    dem_share_arr = Float64[]
+
+"""
+    draw_shape_dem_share(dem_share_arr)
+
+Draw a map with the democratic share by census tract
+"""
+function draw_dem_share()
+    shares = Float64[]
+
     for i in 1:nv(graph)
-        dem_share = demographic.dem[i]/(demographic.dem[i]+demographic.rep[i])
-        push!(dem_share_arr, dem_share)
+        share = -1*demographic.dem[i]/(demographic.dem[i]+demographic.rep[i])
+        push!(shares, share)
     end
-    shapefile."dem_share_arr"= pd.Series(dem_share_arr, index=shapefile.index)
-    fig, ax = plt.subplots(1, figsize=(10,8))
-    ax.set_aspect("equal")
-    shapefile.plot(ax=ax, column="dem_share_arr", cmap="seismic", linewidth=0.8
-                        , legend=true)
-    ax.axis("off")
-    ax.set_title("District's democratic share")
-    plt.savefig(joinpath("images", "shape_dem_share.png"))
+
+    shapefile."to_draw" = pd.Series(shares,index=shapefile.index)
+
+    shapefile.plot(column=shares, cmap="seismic")
+    plt.savefig("dem_share_1", dpi=300)
 end
 
+"""
+    record_info(districts)
 
-function record_info(districts)
+Record the information from DistrictData
+"""
+function record_info(districts::DistrictData)
     info = Dict()
     info["nv"] = nv(graph)
+    compactness = measure_district_compactness_shapes(districts)
+    info["compactness"] = [mean(compactness), minimum(compactness)]
     info["connected"] = all_connected(districts.dis_arr)
     info["parity"] = all_parity(districts.pop)
     info["dem_percent"] = dem_percentages(districts)
-    info["mean_dem_percent"] = mean(percent_dem)
+    info["mean_dem_percent"] = 1
     info["safe_dem_seats"] = length([p for p in percent_dem if p >= safe_percentage])
     return info
 end
 
-function print_info(info)
+"""
+    print_info(info)
+
+Print the information previously recorded
+"""
+function print_info(info::Dict)
     println("***********************************")
     println("Number of vertices = ", info["nv"])
     println("Connected? ", info["connected"])
     println("Parity? ", info["parity"])
     println("Dem percents = ", info["dem_percent"])
+    println("Compactness : Avg = $(info["compactness"][1]), Min = $(info["compactness"][2])")
     println("Target = ", target)
     println("Mean dem percent = ", info["mean_dem_percent"])
     println("Safe dem seats = ", info["safe_dem_seats"])
+end
+
+"""
+    draw_lowest_district(draw_array)
+
+Draw the shape figure where only census tracts that correspond to lowest
+district is shown
+"""
+function draw_lowest_district(draw_array::Array{Bool})
+    to_drawdf = DataFrame(shapefile)
+    to_draw = loc(to_drawdf)[draw_array]
+    Pandas.plot(to_draw)
+    plt.savefig("lowest_rep.png", dpi=400)
 end
