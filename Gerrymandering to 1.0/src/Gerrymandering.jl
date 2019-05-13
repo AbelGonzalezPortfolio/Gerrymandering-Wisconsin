@@ -42,7 +42,6 @@ include("algorithms.jl")
 include("simulated_annealing.jl")
 include("initial_districts.jl")
 include("compactness.jl")
-include("tmp.jl")
 
 
 push!(PyVector(pyimport("sys")."path"), "./src/")
@@ -101,7 +100,8 @@ function gerrymander_state()
     print_info(info)
 
     println(check_result(districts))
+    return districts
 end
 
-gerrymander_state()
+districts = gerrymander_state()
 end #module Gerrymandering

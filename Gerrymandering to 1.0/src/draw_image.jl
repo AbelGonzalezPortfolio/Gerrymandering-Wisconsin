@@ -63,7 +63,7 @@ Record the information from DistrictData
 function record_info(districts::DistrictData)
     info = Dict()
     info["nv"] = nv(graph)
-    compactness = measure_district_compactness(districts)
+    compactness = measure_district_compactness_shapes(districts)
     info["compactness"] = [mean(compactness), minimum(compactness)]
     info["connected"] = all_connected(districts.dis_arr)
     info["parity"] = all_parity(districts.pop)

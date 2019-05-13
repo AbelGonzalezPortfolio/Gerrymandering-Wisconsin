@@ -33,3 +33,21 @@ function measure_district_compactness(districts::DistrictData)
     #savefig("ccave_hull_initial_part")
     return compactness
 end
+
+
+"""
+    measure_district_compactness_shapes(districts)
+
+Measure compactness levels using the shapefile
+"""
+function measure_district_compactness_shapes(districts)
+    d_shapes = gpd.GeoDataFrame(shapefile."geometry")
+    d_shapes = d_shapes.dissolve(by=districts.dis)
+    convex_hull = d_shapes.convex_hull
+
+    d_shapes_area = d_shapes.area
+    cvex_hull_area = convex_hull.area
+
+    area_difference = d_shapes_area/cvex_hull_area
+    return area_difference
+end
